@@ -90,6 +90,20 @@ echo 'SCOPEBRIDGE_SERVER_ARGS=--lan 192.168.0.83' > ~/.config/scopebridge/server
 systemctl --user enable --now scopebridge-server    # default: --usb auto
 ```
 
+**The addresses in the examples are examples**, from one network:
+`192.168.0.83` is the scope, `192.168.0.19` a Raspberry Pi. Use your own:
+the scope shows its address under Utility -> IO Setting -> LAN Conf, and
+`hostname -I` shows a Linux computer's, a Pi's for instance. Or find them
+from any computer on the network: `sudo arp-scan --localnet` (`sudo apt
+install arp-scan`) lists every device with its maker, a Rigol scope as
+"Rigol Technologies, Inc." and a Pi as "Raspberry Pi Trading Ltd" or
+"Raspberry Pi Foundation":
+
+```
+$ sudo arp-scan --localnet
+192.168.0.83    00:19:af:xx:xx:xx    Rigol Technologies, Inc.
+```
+
 With the service running, `scopebridge`, `scopebridge-term` and scripts connect to it
 straight away. For a `PREFIX` in your home directory, add
 `SYSTEMD_USER_DIR=~/.config/systemd/user`. `make uninstall` (with the same
@@ -216,9 +230,10 @@ systems: it has run on Raspberry Pi OS 11 and Ubuntu 22.04 (see *Tried
 on*), and should on Raspberry Pi OS 12 too. The first run fetches the build system,
 about 80 MB, into `~/.cache/scopebridge-cross`.
 
-**2. Copy it over**, to your home folder on the Pi (the `:` at the end is
-what makes it the Pi's; without it scp copies to a local file named
-`user@...`):
+**2. Copy it over**, to your home folder on the Pi, with your user name
+and the Pi's address there (`hostname -I` on the Pi shows it; here and
+below it is `192.168.0.19`). The `:` at the end is what makes it the Pi's;
+without it scp copies to a local file named `user@...`:
 
 ```
 scp dist/scopebridge-*-arm64.tar.gz user@192.168.0.19:
