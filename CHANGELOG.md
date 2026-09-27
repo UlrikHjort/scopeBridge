@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Ready-made packages on the GitHub Releases page, for a Raspberry Pi
+  (arm64) and for 64-bit PCs (amd64), built by GitHub Actions for every
+  release.
+- Every pull request and push to main is built and tested on GitHub.
+- The docs say which addresses in examples are examples, and how to find
+  your own, arp-scan included; lan_demo now needs the scope's address.
+
 ## 1.0.0 - 2026-09-27
 
 The first release. Developed and tested on a Rigol DS1202Z-E (firmware

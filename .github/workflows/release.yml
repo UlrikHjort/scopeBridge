@@ -1,0 +1,123 @@
+# Builds the ready-to-install packages and publishes them as a GitHub
+# Release: the Raspberry Pi package (arm64, built by contrib/cross-build.sh
+# in a Raspberry Pi OS 11 root under qemu) and one for 64-bit PCs (amd64,
+# built on Ubuntu 22.04). The release text is the version's section of
+# CHANGELOG.md ("## 1.1.0 - 2026-10-01" for the tag v1.1.0).
+#
+#   A tag v* pushed        the packages, and the release
+#   Run by hand, with a    the same for an existing tag (the Actions tab,
+#     tag                  "Release", "Run workflow")
+#   A pull request that    the packages only, to download from the run:
+#     changes the release  checks the packaging before it is merged
+#     or the packaging
+#
+# Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The existing tag to release, e.g. v1.0.0"
+        required: true
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - "contrib/**"
+      - "Makefile"
+
+permissions:
+  contents: read
+
+env:
+  # The tag of a tag push or a run by hand; empty for a pull request
+  TAG: ${{ inputs.tag || (github.ref_type == 'tag' && github.ref_name) || '' }}
+
+jobs:
+  pi-package:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG || github.sha }}
+          fetch-depth: 0             # the tags, for the package's version
+
+      - name: Install qemu and bubblewrap
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            qemu-user-static binfmt-support bubblewrap
+
+      - name: Build the Raspberry Pi package (arm64, emulated)
+        run: contrib/cross-build.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-arm64
+          path: dist/scopebridge-*-arm64.tar.gz
+          if-no-files-found: error
+
+  pc-package:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG || github.sha }}
+          fetch-depth: 0
+
+      - name: Install the tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gnat gprbuild libgnatcoll19-dev libgtkada20-dev
+
+      - name: Build the PC package (amd64)
+        run: |
+          make
+          make package
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-amd64
+          path: dist/scopebridge-*-amd64.tar.gz
+          if-no-files-found: error
+
+  release:
+    if: github.event_name != 'pull_request'
+    needs: [pi-package, pc-package]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write                # to make the release
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: The release text, from CHANGELOG.md
+        run: |
+          version="${TAG#v}"
+          awk -v v="$version" '$0 ~ "^## " v "( |$)" {f = 1; next} /^## / {f = 0} f' \
+            CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "ScopeBridge $TAG" > notes.md
+          cat notes.md
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.tar.gz --clobber
+          else
+            gh release create "$TAG" dist/*.tar.gz --verify-tag \
+              --title "ScopeBridge $TAG" --notes-file notes.md
+          fi

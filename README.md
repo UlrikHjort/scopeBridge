@@ -216,6 +216,10 @@ Running everything on one computer stays exactly as it is.
 
 #### Installing from a package, with no compiler on the Pi
 
+Every release on GitHub has the packages ready to download, on the
+[Releases](https://github.com/UlrikHjort/scopeBridge/releases) page, so
+step 1 can be skipped: download the one for the Pi and go on with step 2.
+
 **1. Build the package, on this computer.** Which one the Pi needs,
 `dpkg --print-architecture` on the Pi tells: `arm64` (64-bit) or `armhf`
 (32-bit).
