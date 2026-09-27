@@ -1,0 +1,50 @@
+# Builds everything and runs all the tests on every pull request and every
+# push to main, on Ubuntu 22.04: the same GNAT 10 and GNATCOLL 19 the
+# project is developed with. The tests run against the simulated scope;
+# the hardware tests (the scope, the Uno bench, the Raspberry Pis) are done
+# by hand.
+#
+# Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same pull request makes the older run pointless
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gnat gprbuild libgnatcoll19-dev libgtkada20-dev gcc-avr avr-libc
+
+      - name: Build
+        run: make
+
+      - name: Library tests
+        run: make check
+
+      - name: Server, protocol, scripting, terminal and web server tests
+        run: make check-server
+
+      - name: Browser tests
+        run: make check-web
+
+      - name: Arduino examples
+        run: make -C examples/arduino
