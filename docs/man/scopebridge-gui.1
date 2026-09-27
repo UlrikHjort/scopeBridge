@@ -1,0 +1,70 @@
+.TH SCOPEBRIDGE-GUI 1 "September 2026" "scopebridge" "User Commands"
+.SH NAME
+scopebridge-gui, scopebridge \- graphical front end for a Rigol DS1000Z-E oscilloscope
+.SH SYNOPSIS
+.B scopebridge
+.RB [ \-\-usb
+.IR DEVICE " | " \fB\-\-lan\fR " " HOST " | " \fB\-\-sim\fR ]
+.RB [ \-\-port
+.IR N ]
+.br
+.B scopebridge
+.B \-\-host
+.I HOST
+.RB [ \-\-port
+.IR N ]
+.br
+.B scopebridge-gui
+.RB [ \-\-host
+.IR HOST ]
+.RB [ \-\-port
+.IR N ]
+.SH DESCRIPTION
+.B scopebridge-gui
+shows the scope's waveforms live and has its common controls: channels,
+timebase, edge, pulse and slope triggers, measurements (recordable to
+CSV), cursors, math and FFT (by the scope or on the PC), an XY
+display, the pass/fail test, reference waveforms, and decoding of UART,
+I2C and SPI traffic. A capture of the whole acquisition memory can be
+zoomed and panned through. Setups, screenshots and CSV exports are saved
+to files.
+.PP
+It is a client of
+.BR scopebridge-server (1),
+which it connects to on
+.IR HOST : N
+(default 127.0.0.1:5026).
+.B scopebridge
+starts the server and the GUI together and stops the server when the GUI
+closes; without
+.BR \-\-usb ,
+.B \-\-lan
+or
+.B \-\-sim
+it finds the scope on USB. If a server is already listening on the port
+(for example the systemd service), it just starts the GUI.
+With
+.B \-\-host
+it starts only the GUI, for a server running on another computer (such as
+a Raspberry Pi the scope is connected to, running
+.BR "scopebridge-server \-\-listen 0.0.0.0" ).
+.SH OPTIONS
+.TP
+.BI \-\-usb " DEVICE\fR, " \-\-lan " HOST\fR, " \-\-sim
+.RB ( scopebridge
+only) where the scope is, as for
+.BR scopebridge-server (1).
+.TP
+.BI \-\-host " HOST"
+The server's computer; default 127.0.0.1.
+.TP
+.BI \-\-port " N"
+The server's port.
+.SH FILES
+.TP
+.I @DOCDIR@/MANUAL.md
+The user manual, with screenshots of every panel.
+.SH SEE ALSO
+.BR scopebridge-server (1),
+.BR scopebridge-term (1),
+.BR scopebridge-run (1)

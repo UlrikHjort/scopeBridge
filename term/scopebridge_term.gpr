@@ -1,0 +1,27 @@
+--  scopebridge-term: a terminal client for scopebridge-server (docs/PROTOCOL.md).
+--  Built by `make term`, or: gprbuild -p -P term/scopebridge_term.gpr
+--  Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+
+with "gnatcoll";
+
+project Scopebridge_Term is
+
+   --  Server.Wire (message framing) is shared with the server
+   for Source_Dirs use ("src", "../server/src");
+   for Source_Files use
+     ("scopebridge_term.adb", "term_client.ads", "term_client.adb",
+      "server.ads", "server-wire.ads", "server-wire.adb");
+   for Object_Dir  use "../obj/term";
+   for Exec_Dir    use "../bin";
+   for Main        use ("scopebridge_term.adb");
+
+   --  Ada names cannot have hyphens; the command can
+   package Builder is
+      for Executable ("scopebridge_term.adb") use "scopebridge-term";
+   end Builder;
+
+   package Compiler is
+      for Default_Switches ("Ada") use ("-gnatwa", "-gnato", "-gnat2012");
+   end Compiler;
+
+end Scopebridge_Term;

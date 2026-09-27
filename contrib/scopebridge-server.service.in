@@ -1,0 +1,23 @@
+# scopebridge-server as a systemd user service, installed by "make install".
+#
+#   mkdir -p ~/.config/scopebridge
+#   echo 'SCOPEBRIDGE_SERVER_ARGS=--lan 192.168.0.83' > ~/.config/scopebridge/server.conf
+#   systemctl --user enable --now scopebridge-server
+#
+# Without server.conf it looks for the scope on USB.
+# Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+
+[Unit]
+Description=ScopeBridge oscilloscope server (scopebridge-server)
+Documentation=man:scopebridge-server(1)
+
+[Service]
+Environment="SCOPEBRIDGE_SERVER_ARGS=--usb auto"
+EnvironmentFile=-%h/.config/scopebridge/server.conf
+ExecStart=@BINDIR@/scopebridge-server $SCOPEBRIDGE_SERVER_ARGS
+# The scope may be off or not yet on the network: try again
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

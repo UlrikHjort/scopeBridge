@@ -1,0 +1,126 @@
+.TH SCOPEBRIDGE-SERVER 1 "September 2026" "scopebridge" "User Commands"
+.SH NAME
+scopebridge-server \- serve a Rigol DS1000Z-E oscilloscope to GUI, terminal and script clients
+.SH SYNOPSIS
+.B scopebridge-server
+.RB ( \-\-usb
+.IR DEVICE | auto
+|
+.B \-\-lan
+.IR HOST [: PORT ]
+|
+.BR \-\-sim )
+.RB [ \-\-port
+.IR N ]
+.RB [ \-\-listen
+.IR ADDRESS ]
+.RB [ \-\-log
+.IR FILE ]
+.RB [ \-\-web
+.I PORT
+.RB [ \-\-web\-root
+.IR DIR ]]
+.SH DESCRIPTION
+.B scopebridge-server
+owns the connection to the oscilloscope and serves it over TCP, as JSON
+lines with binary payloads for waveform data, to any number of clients at
+once:
+.BR scopebridge-gui (1),
+.BR scopebridge-term (1),
+Python scripts
+.RB ( scopebridge-run (1))
+or any program that speaks the protocol described in
+.IR PROTOCOL.md .
+Besides the scope's own functions it offers what the scope cannot do
+alone: spectra and zooming over the whole acquisition memory, decoding of
+UART, I2C and SPI traffic from captures, timing of code that marks its
+blocks on a pin, and reference waveforms shared by all clients.
+.PP
+Developed and tested with a Rigol DS1202Z-E (firmware 00.06.04).
+.SH OPTIONS
+.TP
+.BI \-\-usb " DEVICE"
+The scope on USB, through the kernel's usbtmc driver, e.g.
+.IR /dev/usbtmc0 .
+.B auto
+finds the first Rigol scope (USB vendor 1ab1); the kernel numbers the
+device anew each time the scope is connected.
+The device is readable by root only unless a udev rule says otherwise:
+.B sudo make install-udev
+in the source tree installs one giving the
+.B plugdev
+group access
+.RI ( /etc/udev/rules.d/70-rigol.rules ).
+.TP
+.BI \-\-lan " HOST\fR[:\fIPORT\fR]"
+The scope on the network (port 5555 unless given).
+.TP
+.B \-\-sim
+A built-in simulated scope, for trying clients without hardware.
+.TP
+.BI \-\-port " N"
+The TCP port to serve on; default 5026.
+.TP
+.BI \-\-listen " ADDRESS"
+The address to serve on; default 127.0.0.1. The protocol has no
+authentication: only listen on other addresses on a network you trust.
+.TP
+.BI \-\-log " FILE"
+Append a command log: a JSON line with a timestamp for every connection,
+request and reply. It can be replayed with
+.BR "scopebridge-run \-\-replay" .
+.TP
+.BI \-\-web " PORT"
+Also serve the web interface on
+.IR PORT ,
+at the
+.B \-\-listen
+address: a GUI for any browser, at
+.BI http:// ADDRESS : PORT /\fR,
+which speaks the protocol over a WebSocket at
+.BR /ws .
+.TP
+.BI \-\-web\-root " DIR"
+Where the web interface's files are; by default
+.I web/
+next to the program's
+.I bin/
+directory (the source tree), or
+.I @DATADIR@/web
+(installed).
+.SH SERVICE
+.B make install
+installs a systemd user unit,
+.IR scopebridge-server.service ,
+which runs the server with the options in
+.I ~/.config/scopebridge/server.conf
+(default:
+.BR "SCOPEBRIDGE_SERVER_ARGS=\-\-usb auto" ):
+.PP
+.nf
+.RS
+mkdir -p ~/.config/scopebridge
+echo 'SCOPEBRIDGE_SERVER_ARGS=\-\-lan 192.168.0.83' > ~/.config/scopebridge/server.conf
+systemctl \-\-user enable \-\-now scopebridge-server
+journalctl \-\-user \-u scopebridge-server
+.RE
+.fi
+.PP
+Clients then connect to it whenever they start;
+.BR scopebridge (1)
+uses a running server rather than starting one.
+.SH EXIT STATUS
+0 is never returned while serving; 1 if the scope cannot be opened, the
+port cannot be bound, or the arguments are wrong.
+.SH FILES
+.TP
+.I @DOCDIR@/PROTOCOL.md
+The protocol.
+.TP
+.I @DOCDIR@/MANUAL.md
+The user manual.
+.SH SEE ALSO
+.BR scopebridge (1),
+.BR scopebridge-gui (1),
+.BR scopebridge-term (1),
+.BR scopebridge-run (1)

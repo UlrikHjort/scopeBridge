@@ -1,0 +1,163 @@
+.TH SCOPEBRIDGE-TERM 1 "September 2026" "scopebridge" "User Commands"
+.SH NAME
+scopebridge-term \- a Rigol DS1000Z-E oscilloscope from the terminal
+.SH SYNOPSIS
+.B scopebridge-term
+.RB [ \-\-host
+.IR HOST ]
+.RB [ \-\-port
+.IR N ]
+.RI [ < " commands" ]
+.SH DESCRIPTION
+.B scopebridge-term
+reads commands, one per line, from the keyboard or a pipe, and sends them
+to
+.BR scopebridge-server (1)
+on
+.IR HOST : N
+(default 127.0.0.1:5026).
+Numbers take SI suffixes: 500m, 2u, 1k.
+Lines starting with # are comments. Read from a pipe, commands are echoed,
+an error does not stop the rest, and the exit status is 1 if any command
+failed.
+.SH COMMANDS
+.TP
+.B status
+The scope's settings.
+.TP
+.BR run " | " stop " | " single " | " auto " | " force
+Acquisition.
+.TP
+.BI "ch " N " \fR[\fBon\fR|\fBoff\fR] [\fBscale \fIV\fR] [\fBoffset \fIV\fR] [\fBcoupling dc\fR|\fBac\fR|\fBgnd\fR] [\fBprobe \fIX\fR]"
+A channel's settings.
+.TP
+.BI "tb \fR[\fBscale \fIS\fR] [\fBoffset \fIS\fR] [\fBmode yt\fR|\fBxy\fR|\fBroll\fR]"
+The timebase.
+.TP
+.BI "acq \fR[\fBtype normal\fR|\fBaverage\fR|\fBpeak\fR|\fBhires\fR] [\fBaverages \fIN\fR] [\fBdepth auto\fR|\fIN\fR]"
+The acquisition mode and memory depth; alone, shows them.
+.TP
+.BI "trig \fR[\fBlevel \fIV\fR] [\fBslope \fIS\fR] [\fBsource \fIS\fR] [\fBsweep \fIS\fR] [\fBmode \fIM\fR]"
+The trigger.
+.TP
+.BI "measure " N " \fR[\fIITEM\fR ...]"
+Measurements: freq period vpp vmax vmin vtop vbase vamp vavg vrms rise
+fall pwidth nwidth pduty nduty.
+.TP
+.BI "watch \fR[\fIN\fR|\fBall\fR] [\fIFRAMES\fR]"
+The live waveform, drawn with characters; Enter stops.
+.TP
+.BI "sleep " SECONDS
+Pause.
+.TP
+.BI "wait \fR[\fISECONDS\fR]"
+After
+.BR single :
+until the scope has triggered.
+.TP
+.BI "capture " N
+Read channel N's whole acquisition memory into the server.
+.TP
+.BI "save " FILE " \fR[\fIN\fR]"
+The captured samples as CSV.
+.TP
+.BI "spectrum " N " \fR[\fIWINDOW\fR]"
+The strongest lines of the capture's spectrum.
+.TP
+.BI "decode uart\fR|\fBi2c\fR|\fBspi \fR[\fINAME VALUE\fR ...] [\fBshow \fIN\fR]"
+Decode the captures as a serial bus; UART also prints the text per line.
+UART:
+.BR "tx " N ,
+.BR "rx " N ,
+.BR "baud " B ,
+.BR "bits " N ,
+.BR "parity none" | even | odd ,
+.BR "stop 1" | 1.5 | 2 .
+I2C:
+.BR "scl " N ,
+.BR "sda " N .
+SPI:
+.BR "clk " N ,
+.BR "data " N ,
+.BR "edge rising" | falling ,
+.BR "width " N ,
+.BR "timeout " S .
+All:
+.BR "inverted on" | off ,
+.BR "msb_first on" | off ,
+.BR "threshold1 " V ,
+.BR "threshold2 " V .
+.TP
+.BI "bus \fR[\fB1\fR|\fB2\fR] \fBuart\fR|\fBi2c\fR|\fBspi \fR[\fINAME VALUE\fR ...] [\fBformat hex\fR|\fBascii\fR|\fBdec\fR|\fBbin\fR]"
+Set up the scope's own bus decoder with the same settings;
+.B "bus \fR[\fIB\fR] \fBoff"
+switches it off.
+.TP
+.BI "timing " N " \fR[\fBto \fIM\fR] [\fBgap \fIS\fR] [\fBlow\fR] [\fBbins \fIN\fR] [\fBthreshold \fIV\fR]"
+Time code: the blocks a program marks on channel
+.I N
+(high while they run, or low with
+.BR low ).
+Capture the channel first, and channel
+.I M
+too for
+.BR to .
+Shows the count, min, mean, max and standard deviation of the blocks,
+the time between them and their period, where the longest and shortest
+are, and a histogram; with
+.BR to ,
+the latency from each block to the next pulse on channel
+.IR M ;
+with
+.BR gap ,
+bursts of pulses split by pauses longer than
+.I S
+(one per run of a loop that toggles the pin).
+.TP
+.B mask
+The pass/fail test's counts.
+.TP
+.BI "mask on\fR|\fBoff\fR|\fBcreate\fR|\fBrun\fR|\fBstop\fR|\fBreset \fR[\fBx \fIDIV\fR] [\fBy \fIDIV\fR] [\fBsource ch1\fR|\fBch2\fR] [\fBstop_on_fail on\fR|\fBoff\fR] [\fBbeep on\fR|\fBoff\fR]"
+Set up and run the pass/fail test.
+.TP
+.B ref
+The reference waveforms the server keeps.
+.TP
+.BI "ref save " SLOT " " N " \fR| \fBref clear \fR[\fISLOT\fR] | \fBref export \fISLOT FILE"
+Keep channel N's screen as a reference; forget one or all; write one as
+CSV.
+.TP
+.BI "ref load " SLOT " " FILE " \fR[\fIN\fR]"
+A CSV of time, volts as a reference, placed like channel N.
+.TP
+.BI "screenshot " FILE
+The scope's screen as BMP.
+.TP
+.BI "setup save " FILE " \fR| \fBsetup load " FILE
+The scope's complete setup.
+.TP
+.BI "scpi " TEXT
+A raw SCPI command; a query (ending in ?) is answered.
+.TP
+.BI "raw " JSON
+A protocol request as it is.
+.TP
+.B quit
+.SH EXAMPLE
+.nf
+.RS
+$ scopebridge-term <<END
+ch 1 scale 500m offset \-1.5
+tb scale 1m
+single
+wait
+capture 1
+spectrum 1 flattop
+save capture.csv
+END
+.RE
+.fi
+.SH SEE ALSO
+.BR scopebridge-server (1),
+.BR scopebridge-gui (1),
+.BR scopebridge-run (1)

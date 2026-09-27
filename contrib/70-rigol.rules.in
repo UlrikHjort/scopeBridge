@@ -1,0 +1,11 @@
+# Access to Rigol oscilloscopes on USB (vendor 1ab1) without root, for
+# scopebridge-server --usb.  Installed by "sudo make install-udev".
+#
+# The scope's /dev/usbtmcN goes to the @UDEV_GROUP@ group; its members can
+# use it, also from a service that runs without a login (a Raspberry Pi
+# serving the scope).  uaccess also gives it to whoever is logged in at the
+# computer, which covers systems without that group; it only works from a
+# file that sorts before systemd's 73-seat-late.rules, hence the 70.
+# Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+
+SUBSYSTEM=="usbmisc", KERNEL=="usbtmc*", ATTRS{idVendor}=="1ab1", GROUP="@UDEV_GROUP@", MODE="0660", TAG+="uaccess"

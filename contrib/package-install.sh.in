@@ -1,0 +1,51 @@
+#!/bin/sh
+#  Installs ScopeBridge under @PREFIX@, with the udev rule that lets the scope on
+#  USB be used without root.  Made by "make package" for @ARCH@:
+#
+#    sudo ./install.sh
+#
+#  ./uninstall.sh removes it all again.
+# Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+set -e
+cd "$(dirname "$0")"
+
+if [ "$(id -u)" != 0 ]; then
+  echo "install.sh: run it as root: sudo ./install.sh" >&2
+  exit 1
+fi
+arch=$(dpkg --print-architecture 2>/dev/null || uname -m)
+if [ "$arch" != "@ARCH@" ]; then
+  echo "install.sh: this package is for @ARCH@, and this computer is $arch" >&2
+  exit 1
+fi
+
+#  File by file, making only the directories that are missing: existing
+#  ones (/, /usr, /etc ...) are not touched.  (Unpacking the tree over /
+#  with tar would set their modes, even with --no-overwrite-dir.)
+umask 022
+while read -r f; do
+  mkdir -p "$(dirname "$f")"
+  cp --preserve=mode "root$f" "$f"
+done < files
+
+getent group @UDEV_GROUP@ > /dev/null || groupadd --system @UDEV_GROUP@
+udevadm control --reload && udevadm trigger --subsystem-match=usbmisc || true
+
+user=${SUDO_USER:-}
+echo "Installed under @PREFIX@: scopebridge-server, scopebridge-term, the web interface,"
+echo "the Python client, man pages and the udev rule for the scope on USB."
+if [ -n "$user" ] && ! id -nG "$user" | grep -qw @UDEV_GROUP@; then
+  echo
+  echo "For the scope on USB: sudo usermod -aG @UDEV_GROUP@ $user, and log in again."
+fi
+cat <<END
+
+To keep a server running, as yourself (not root), with the scope on USB and
+the web interface on port 8080:
+
+  mkdir -p ~/.config/scopebridge
+  echo 'SCOPEBRIDGE_SERVER_ARGS=--usb auto --listen 0.0.0.0 --web 8080' > ~/.config/scopebridge/server.conf
+  systemctl --user daemon-reload
+  systemctl --user enable --now scopebridge-server
+  sudo loginctl enable-linger ${user:-\$USER}     # start it at boot, without a login
+END

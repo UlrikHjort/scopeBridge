@@ -1,0 +1,17 @@
+--  The library's examples and its mock-based test suite.
+--  Built by `make`, or: gprbuild -p -P rigol.gpr
+--  Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+
+with "rigol_lib.gpr";
+
+project Rigol is
+
+   for Source_Dirs use ("examples", "tests");
+   for Object_Dir  use "obj/examples";
+   for Exec_Dir    use "bin";
+   for Main        use ("basic_demo.adb", "lan_demo.adb", "capture_demo.adb",
+                        "test_scpi.adb");
+
+   package Compiler renames Rigol_Lib.Compiler;
+
+end Rigol;

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<!-- The browser client of scopebridge-server (scopebridge-server --web PORT).
+     Speaks docs/PROTOCOL.md over a WebSocket at /ws.
+     Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScopeBridge</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <span class="title" id="title">ScopeBridge</span>
+  <span class="connection" id="connection">connecting ...</span>
+</header>
+
+<main>
+  <section class="display">
+    <canvas id="scope"></canvas>
+    <canvas id="spectrum" hidden></canvas>
+    <div class="readout" id="readout"></div>
+    <div class="decoded" id="decoded" hidden>
+      <div class="decoded-summary" id="decoded-summary"></div>
+      <div class="decoded-table">
+        <table>
+          <thead><tr><th>Time</th><th>Ch</th><th>Type</th><th>Value</th><th></th></tr></thead>
+          <tbody id="decoded-rows"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="timing" id="timing" hidden>
+      <pre class="timing-table" id="timing-table"></pre>
+      <div class="timing-side">
+        <canvas id="timing-hist"></canvas>
+        <div class="row">
+          <select id="tim-which">
+            <option value="block">Block</option><option value="idle">Idle</option>
+            <option value="period">Period</option><option value="latency">Latency</option>
+            <option value="burst">Burst</option>
+          </select>
+          <button id="tim-longest">Longest</button>
+          <button id="tim-shortest">Shortest</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <details open>
+      <summary>Acquisition</summary>
+      <div class="buttons">
+        <button data-cmd="run">Run</button>
+        <button data-cmd="stop">Stop</button>
+        <button data-cmd="single">Single</button>
+        <button data-cmd="auto">Auto</button>
+        <button data-cmd="force">Force</button>
+      </div>
+      <div class="row">
+        <select id="acq-type" title="Acquisition mode">
+          <option value="normal">Normal</option>
+          <option value="average">Average</option>
+          <option value="peak">Peak detect</option>
+          <option value="hires">High res</option>
+        </select>
+        <select id="acq-averages" title="Frames averaged"></select>
+      </div>
+      <div class="row">
+        <label for="acq-depth">Memory</label>
+        <select id="acq-depth"></select>
+        <span id="acq-rate" class="value"></span>
+      </div>
+    </details>
+
+    <details open class="channel" data-ch="1">
+      <summary><span class="swatch ch1"></span>Channel 1</summary>
+      <div class="row">
+        <label><input type="checkbox" class="ch-on"> On</label>
+        <select class="ch-scale" title="Volts per division"></select>
+      </div>
+      <div class="row">
+        <label>Position (div)</label>
+        <input type="number" class="ch-position" step="0.1" min="-50" max="50">
+      </div>
+      <div class="row">
+        <select class="ch-coupling" title="Coupling">
+          <option value="dc">DC</option><option value="ac">AC</option><option value="gnd">GND</option>
+        </select>
+        <select class="ch-probe" title="Probe"></select>
+      </div>
+    </details>
+
+    <details open class="channel" data-ch="2">
+      <summary><span class="swatch ch2"></span>Channel 2</summary>
+      <div class="row">
+        <label><input type="checkbox" class="ch-on"> On</label>
+        <select class="ch-scale" title="Volts per division"></select>
+      </div>
+      <div class="row">
+        <label>Position (div)</label>
+        <input type="number" class="ch-position" step="0.1" min="-50" max="50">
+      </div>
+      <div class="row">
+        <select class="ch-coupling" title="Coupling">
+          <option value="dc">DC</option><option value="ac">AC</option><option value="gnd">GND</option>
+        </select>
+        <select class="ch-probe" title="Probe"></select>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Timebase</summary>
+      <div class="row"><select id="tb-scale" title="Time per division"></select></div>
+      <div class="row">
+        <label for="tb-position">Position (div)</label>
+        <input type="number" id="tb-position" step="0.1">
+      </div>
+    </details>
+
+    <details open>
+      <summary>Trigger</summary>
+      <div class="row">
+        <label for="trig-mode">Mode</label>
+        <select id="trig-mode">
+          <option value="edge">Edge</option>
+          <option value="pulse">Pulse width</option>
+          <option value="slope">Slope</option>
+          <option value="other" disabled>Other</option>
+        </select>
+      </div>
+      <div id="trig-edge">
+        <div class="row">
+          <select id="trig-source" title="Source">
+            <option value="ch1">CH1</option><option value="ch2">CH2</option>
+            <option value="ac">AC line</option><option value="ext">EXT</option>
+          </select>
+          <select id="trig-slope" title="Slope">
+            <option value="rising">Rising</option><option value="falling">Falling</option>
+            <option value="either">Either</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="trig-level">Level (V)</label>
+          <input type="number" id="trig-level" step="0.01">
+        </div>
+      </div>
+      <div id="trig-pulse" hidden>
+        <div class="row">
+          <select id="pulse-source" title="Source">
+            <option value="ch1">CH1</option><option value="ch2">CH2</option>
+          </select>
+          <select id="pulse-when" title="Condition"></select>
+        </div>
+        <div class="row"><label for="pulse-width">Width</label><select id="pulse-width"></select></div>
+        <div class="row"><label for="pulse-lower">Range from</label><select id="pulse-lower"></select></div>
+        <div class="row"><label for="pulse-upper">to</label><select id="pulse-upper"></select></div>
+        <div class="row">
+          <label for="pulse-level">Level (V)</label>
+          <input type="number" id="pulse-level" step="0.01">
+        </div>
+      </div>
+      <div id="trig-slope-box" hidden>
+        <div class="row">
+          <select id="slope-source" title="Source">
+            <option value="ch1">CH1</option><option value="ch2">CH2</option>
+          </select>
+          <select id="slope-when" title="Condition"></select>
+        </div>
+        <div class="row"><label for="slope-time">Time</label><select id="slope-time"></select></div>
+        <div class="row"><label for="slope-lower">Range from</label><select id="slope-lower"></select></div>
+        <div class="row"><label for="slope-upper">to</label><select id="slope-upper"></select></div>
+        <div class="row">
+          <label for="slope-window">Adjust</label>
+          <select id="slope-window">
+            <option value="a">Level A</option><option value="b">Level B</option>
+            <option value="both">A and B</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="slope-a">Level A (V)</label>
+          <input type="number" id="slope-a" step="0.01">
+        </div>
+        <div class="row">
+          <label for="slope-b">Level B (V)</label>
+          <input type="number" id="slope-b" step="0.01">
+        </div>
+      </div>
+      <div class="row">
+        <label for="trig-sweep">Sweep</label>
+        <select id="trig-sweep">
+          <option value="auto">Auto</option><option value="normal">Normal</option>
+          <option value="single">Single</option>
+        </select>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Measurements</summary>
+      <div class="row">
+        <label for="meas-ch">Channel</label>
+        <select id="meas-ch">
+          <option value="1">CH1</option><option value="2">CH2</option><option value="0">Off</option>
+        </select>
+      </div>
+      <div id="meas-slots"></div>
+      <div class="row"><button id="record" class="wide">Record ...</button></div>
+    </details>
+
+    <details open>
+      <summary>Capture and files</summary>
+      <div class="row">
+        <button id="capture" class="wide">Capture memory</button>
+        <button id="live" class="wide">Live</button>
+      </div>
+      <progress id="progress" max="1" value="0" hidden></progress>
+      <div class="row">
+        <button id="export" class="wide">Export CSV</button>
+        <button id="screenshot" class="wide">Screenshot</button>
+      </div>
+    </details>
+
+    <details>
+      <summary>Display and cursors</summary>
+      <div class="row">
+        <select id="display-mode">
+          <option value="yt">YT (time)</option>
+          <option value="xy">XY (CH1 across, CH2 up)</option>
+        </select>
+      </div>
+      <div class="row"><label><input type="checkbox" id="cursors"> Show cursors</label></div>
+      <p class="note">Drag the A and B lines.</p>
+    </details>
+
+    <details>
+      <summary>Math</summary>
+      <div class="row">
+        <select id="math-mode">
+          <option value="off">Off</option><option value="scope">Scope</option>
+          <option value="pc">PC</option>
+        </select>
+        <select id="math-op">
+          <option value="add">A+B</option><option value="sub">A-B</option>
+          <option value="mul">AxB</option><option value="div">A/B</option>
+        </select>
+      </div>
+      <div class="row"><label for="math-scale">Scale</label><select id="math-scale"></select></div>
+      <div class="row">
+        <label for="math-position">Position (div)</label>
+        <input type="number" id="math-position" step="0.1" value="0">
+      </div>
+      <p class="note">A = CH1, B = CH2.</p>
+    </details>
+
+    <details>
+      <summary>FFT</summary>
+      <div class="row">
+        <select id="fft-mode">
+          <option value="off">Off</option><option value="scope">Scope</option>
+          <option value="pc">PC</option>
+        </select>
+        <select id="fft-source">
+          <option value="1">CH1</option><option value="2">CH2</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="fft-window">Window</label>
+        <select id="fft-window">
+          <option value="rect">Rect</option><option value="hann" selected>Hann</option>
+          <option value="hamming">Hamming</option><option value="blackman">Blackman</option>
+          <option value="flattop">Flat top</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="fft-data">Scope FFT of</label>
+        <select id="fft-data">
+          <option value="trace">Screen</option><option value="memory">Memory</option>
+        </select>
+      </div>
+      <div class="row"><label><input type="checkbox" id="fft-log"> Log frequency axis</label></div>
+    </details>
+
+    <details>
+      <summary>Decode</summary>
+      <div class="row">
+        <label for="dec-protocol">Protocol</label>
+        <select id="dec-protocol">
+          <option value="uart">UART</option><option value="i2c">I2C</option>
+          <option value="spi">SPI</option>
+        </select>
+      </div>
+      <div id="dec-uart">
+        <div class="row">
+          <label>TX</label>
+          <select id="dec-tx"><option value="1">CH1</option><option value="2">CH2</option></select>
+        </div>
+        <div class="row">
+          <label>RX</label>
+          <select id="dec-rx"><option value="0">none</option><option value="1">CH1</option>
+            <option value="2">CH2</option></select>
+        </div>
+        <div class="row">
+          <label for="dec-baud">Baud</label>
+          <input id="dec-baud" list="dec-bauds" value="9600" inputmode="numeric">
+          <datalist id="dec-bauds"></datalist>
+        </div>
+        <div class="row">
+          <label>Data bits</label>
+          <select id="dec-bits"><option>5</option><option>6</option><option>7</option>
+            <option selected>8</option><option>9</option></select>
+        </div>
+        <div class="row">
+          <label>Parity</label>
+          <select id="dec-parity"><option value="none">none</option><option value="even">even</option>
+            <option value="odd">odd</option></select>
+        </div>
+        <div class="row">
+          <label>Stop bits</label>
+          <select id="dec-stop"><option value="1">1</option><option value="1.5">1.5</option>
+            <option value="2">2</option></select>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="dec-uart-inverted"> Idle low</label>
+          <label><input type="checkbox" id="dec-uart-msb"> MSB first</label>
+        </div>
+      </div>
+      <div id="dec-i2c" hidden>
+        <div class="row">
+          <label>SCL</label>
+          <select id="dec-scl"><option value="1">CH1</option><option value="2">CH2</option></select>
+        </div>
+        <p class="note">SDA is the other channel.</p>
+      </div>
+      <div id="dec-spi" hidden>
+        <div class="row">
+          <label>Clock</label>
+          <select id="dec-clk"><option value="1">CH1</option><option value="2">CH2</option></select>
+        </div>
+        <div class="row">
+          <label>Data valid on</label>
+          <select id="dec-edge"><option value="rising">rising edge</option>
+            <option value="falling">falling edge</option></select>
+        </div>
+        <div class="row">
+          <label>Word</label>
+          <select id="dec-width"><option value="8">8 bits</option><option value="16">16 bits</option>
+            <option value="24">24 bits</option><option value="32">32 bits</option></select>
+        </div>
+        <div class="row">
+          <label for="dec-timeout">Timeout</label>
+          <input id="dec-timeout" value="auto" title="auto, or e.g. 5u">
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="dec-spi-lsb"> LSB first</label>
+          <label><input type="checkbox" id="dec-spi-inverted"> Active low</label>
+        </div>
+        <p class="note">Data is the other channel.</p>
+      </div>
+      <div class="row">
+        <label for="dec-format">Show as</label>
+        <select id="dec-format"><option value="hex">Hex</option><option value="ascii">ASCII</option>
+          <option value="dec">Decimal</option><option value="bin">Binary</option></select>
+      </div>
+      <div class="row">
+        <button id="dec-run" class="wide">Decode capture</button>
+        <button id="dec-scope" class="wide">Show on scope</button>
+      </div>
+      <div class="row"><button id="dec-clear" class="wide">Clear</button></div>
+    </details>
+
+    <details>
+      <summary>Timing</summary>
+      <div class="row">
+        <label>Marker</label>
+        <select id="tim-ch"><option value="1">CH1</option><option value="2">CH2</option></select>
+      </div>
+      <div class="row">
+        <label>Block is</label>
+        <select id="tim-polarity"><option value="high">high</option><option value="low">low</option></select>
+      </div>
+      <div class="row">
+        <label>Latency to</label>
+        <select id="tim-to"><option value="0">off</option><option value="1">the other channel</option></select>
+      </div>
+      <div class="row">
+        <label for="tim-gap">Burst gap</label>
+        <input id="tim-gap" list="tim-gaps" value="off" title="off, or e.g. 50u: a longer pause ends a burst">
+        <datalist id="tim-gaps"><option value="off"><option value="10u"><option value="50u">
+          <option value="100u"><option value="1m"></datalist>
+      </div>
+      <div class="row">
+        <button id="tim-run" class="wide">Time capture</button>
+        <button id="tim-clear" class="wide">Clear</button>
+      </div>
+      <p class="note">Mark a block of code on a pin (high while it runs) and capture it.</p>
+    </details>
+
+    <details>
+      <summary>References</summary>
+      <div class="row">
+        <select id="ref-slot"><option value="1">R1</option><option value="2">R2</option>
+          <option value="3">R3</option><option value="4">R4</option></select>
+        <select id="ref-source"><option value="1">CH1</option><option value="2">CH2</option></select>
+      </div>
+      <div class="row">
+        <button id="ref-save" class="wide">Save</button>
+        <button id="ref-clear" class="wide">Clear</button>
+      </div>
+      <div class="row">
+        <button id="ref-export" class="wide">Export CSV</button>
+        <button id="ref-import" class="wide">Import CSV</button>
+      </div>
+      <div class="row"><label><input type="checkbox" id="ref-show" checked> Show references</label></div>
+      <div class="note" id="ref-list">none</div>
+    </details>
+
+    <details>
+      <summary>Pass/fail</summary>
+      <div class="row">
+        <label for="mask-source">Source</label>
+        <select id="mask-source"><option value="ch1">CH1</option><option value="ch2">CH2</option></select>
+      </div>
+      <div class="row">
+        <label for="mask-x">Margin X (div)</label>
+        <input type="number" id="mask-x" min="0.02" max="4" step="0.02" value="0.2">
+      </div>
+      <div class="row">
+        <label for="mask-y">Margin Y (div)</label>
+        <input type="number" id="mask-y" min="0.04" max="5.12" step="0.04" value="0.48">
+      </div>
+      <div class="row"><label><input type="checkbox" id="mask-stop"> Stop on fail</label></div>
+      <div class="buttons three">
+        <button data-mask="create">Create mask</button>
+        <button data-mask="start">Start</button>
+        <button data-mask="stop">Stop</button>
+        <button data-mask="reset">Reset</button>
+        <button data-mask="off">Off</button>
+      </div>
+      <div class="note" id="mask-counts">Test off</div>
+    </details>
+
+    <details>
+      <summary>Setups</summary>
+      <div class="row">
+        <button id="setup-save" class="wide">Save setup</button>
+        <button id="setup-load" class="wide">Load setup</button>
+      </div>
+      <p class="note">Every setting of the scope, in a file on this computer.</p>
+    </details>
+  </aside>
+</main>
+
+<footer class="bar" id="status"></footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

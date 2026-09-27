@@ -1,0 +1,16 @@
+--  The Rigol DS1000Z-E Ada library (src/): transports, the Oscilloscope
+--  type and the SCPI command packages.  Projects that use the library
+--  "with" this one; it is compiled once, into obj/lib.
+--  Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+
+project Rigol_Lib is
+
+   for Source_Dirs use ("src");
+   for Object_Dir  use "obj/lib";
+
+   package Compiler is
+      --  -O2: the server's heavy loops (FFT, capture views) use these units
+      for Default_Switches ("Ada") use ("-gnatwa", "-gnato", "-gnat2012", "-O2");
+   end Compiler;
+
+end Rigol_Lib;

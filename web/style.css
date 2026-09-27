@@ -1,0 +1,271 @@
+/* The browser client of scopebridge-server: a dark, scope-like page with the
+   display on the left and the controls on the right, stacked on narrow
+   screens. */
+/* Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE. */
+
+:root {
+  --bg:        #16181c;
+  --panel:     #22252b;
+  --field:     #2c3037;
+  --border:    #3a3f47;
+  --text:      #e3e5e8;
+  --muted:     #9aa0a8;
+  --accent:    #5aa9ff;
+  --error:     #ff6b6b;
+  --ch1:       #ffe600;
+  --ch2:       #00d9ff;
+  --panel-width: 330px;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html {
+  scrollbar-color: var(--border) var(--bg);
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.35 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  min-height: 34px;
+}
+
+.bar .title { font-weight: 600; }
+.bar .connection { margin-left: auto; color: var(--muted); font-size: 13px; }
+.bar .connection::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+.bar .connection.up::before { background: #4cd964; }
+.bar .connection.down::before { background: var(--error); }
+
+footer.bar {
+  border-top: 1px solid var(--border);
+  border-bottom: none;
+  color: var(--muted);
+  font-size: 13px;
+}
+footer.bar.error { color: var(--error); }
+
+main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.display {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 8px;
+  gap: 6px;
+}
+
+#scope {
+  flex: 3;
+  width: 100%;
+  min-height: 240px;
+  background: #000;
+  border-radius: 4px;
+}
+
+#spectrum {
+  flex: 2;
+  width: 100%;
+  min-height: 160px;
+  background: #000;
+  border-radius: 4px;
+}
+
+.decoded {
+  flex: none;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.decoded-summary { color: var(--muted); font-size: 13px; }
+.decoded-table {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  scrollbar-color: var(--border) var(--bg);
+}
+.decoded table { width: 100%; border-collapse: collapse; font: 13px ui-monospace, "DejaVu Sans Mono", Menlo, monospace; }
+.decoded th {
+  position: sticky; top: 0;
+  background: var(--panel);
+  text-align: left;
+  font-weight: normal;
+  color: var(--muted);
+  padding: 3px 8px;
+}
+.decoded td { padding: 2px 8px; white-space: nowrap; }
+.decoded tbody tr { cursor: pointer; }
+.decoded tbody tr:hover { background: var(--field); }
+.decoded tbody tr.chosen { background: #28415e; }
+.decoded td.bad { color: var(--error); }
+
+.timing {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.timing-table {
+  margin: 0;
+  font: 13px/1.35 ui-monospace, "DejaVu Sans Mono", Menlo, monospace;
+  color: var(--text);
+  overflow-x: auto;
+  max-width: 100%;
+}
+.timing-side { flex: 1; min-width: 240px; }
+.timing-side .row { margin: 4px 0 0; }
+#timing-hist {
+  width: 100%;
+  height: 130px;
+  background: #000;
+  border-radius: 4px;
+  display: block;
+}
+
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font: 13px/1.3 ui-monospace, "DejaVu Sans Mono", Menlo, monospace;
+  color: var(--muted);
+  min-height: 18px;
+}
+.readout b { color: var(--text); font-weight: normal; }
+.readout span { white-space: nowrap; }
+
+.panel {
+  width: var(--panel-width);
+  flex: none;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  scrollbar-color: var(--border) var(--panel);
+}
+
+details {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin: 0 0 8px;
+  padding: 0 10px;
+}
+details[open] { padding-bottom: 8px; }
+
+summary {
+  padding: 7px 0;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+details[open] > summary { color: var(--text); }
+
+.swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.swatch.ch1 { background: var(--ch1); }
+.swatch.ch2 { background: var(--ch2); }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+}
+.row > label:first-child { flex: 1; color: var(--muted); }
+.row > label:first-child:has(input) { color: var(--text); }
+.row select, .row input[type=number], .row input:not([type]) { flex: 1; min-width: 0; }
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin: 2px 0 6px;
+}
+.buttons.three { grid-template-columns: repeat(3, 1fr); }
+button.wide { flex: 1; }
+progress { width: 100%; height: 8px; accent-color: var(--accent); }
+
+button, select, input[type=number], input:not([type]) {
+  font: inherit;
+  color: var(--text);
+  background: var(--field);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 6px;
+  min-height: 32px;
+}
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:active { background: var(--border); }
+select:disabled { opacity: 0.5; }
+input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+
+.value {
+  font-family: ui-monospace, "DejaVu Sans Mono", Menlo, monospace;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.row .value { flex: 1; text-align: right; }
+
+.note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.note:empty { display: none; }
+
+/* Phones and narrow windows: the controls under the display */
+@media (max-width: 800px) {
+  main { flex-direction: column; overflow-y: auto; }
+  .display { flex: none; }
+  #scope { flex: none; height: min(62vh, 70vw); }
+  .panel {
+    width: auto;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    overflow: visible;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px;
+  }
+  details { margin: 0; }
+  #spectrum { flex: none; height: min(45vh, 55vw); }
+}

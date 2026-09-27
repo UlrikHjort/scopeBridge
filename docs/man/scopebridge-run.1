@@ -1,0 +1,87 @@
+.TH SCOPEBRIDGE-RUN 1 "September 2026" "scopebridge" "User Commands"
+.SH NAME
+scopebridge-run \- run a Python script against a Rigol DS1000Z-E, or replay a session log
+.SH SYNOPSIS
+.B scopebridge-run
+.RB [ \-\-usb
+.IR DEVICE " | " \fB\-\-lan\fR " " HOST " | " \fB\-\-sim\fR ]
+.RB [ \-\-port
+.IR N ]
+.I script.py
+.RI [ args ...]
+.br
+.B scopebridge-run
+.B \-\-host
+.I HOST
+.I script.py
+.RI [ args ...]
+.br
+.B scopebridge-run
+.RB [ \-\-host
+.IR HOST ]
+.RB [ \-\-port
+.IR N ]
+.B \-\-replay
+.I LOG
+.RB [ \-\-client
+.IR N ]
+.RB [ \-\-timing ]
+.SH DESCRIPTION
+Runs a Python script that uses the
+.B scopebridge
+module
+.RB ( "from scopebridge import Scope" ),
+with the module importable and
+.B Scope()
+pointed at the server. With
+.BR \-\-usb ,
+.B \-\-lan
+or
+.B \-\-sim
+it starts a
+.BR scopebridge-server (1)
+for the script and stops it afterwards, unless one is already listening on
+the port.
+.PP
+.BI \-\-host " HOST"
+uses the server on another computer (default:
+.BR $RIGOL_HOST ,
+else 127.0.0.1); it cannot be combined with
+.BR \-\-usb ,
+.B \-\-lan
+or
+.BR \-\-sim ,
+which start a server on this one.
+.PP
+With
+.BR \-\-replay ,
+it sends the requests of a command log
+.RB ( "scopebridge-server \-\-log" )
+again, in order, and reports each reply;
+.B \-\-client
+replays one client's requests only,
+.B \-\-timing
+keeps the original pauses.
+.PP
+To use the module without
+.BR scopebridge-run ,
+add
+.I @PYDIR@
+to
+.BR PYTHONPATH .
+.SH EXAMPLE
+.nf
+.RS
+from scopebridge import Scope
+
+with Scope() as scope:
+    scope.single()
+    scope.wait_for_trigger()
+    cap = scope.capture(1)
+    cap.save_csv("capture.csv")
+    print(scope.decode("uart", tx=1, baud=115200))
+.RE
+.fi
+.SH SEE ALSO
+.BR scopebridge-server (1),
+.BR scopebridge-term (1)
