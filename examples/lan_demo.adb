@@ -27,7 +27,7 @@
 --  and reads back a few settings, and never issues *RST or changes state.
 --
 --  Build:  make lan_demo
---  Run:    ./bin/lan_demo [host] [port]      (default 192.168.1.100 5555)
+--  Run:    ./bin/lan_demo HOST [PORT]        (the scope's address; port 5555)
 --
 --  It can be pointed at a stand-in rather than real hardware, which is the
 --  easiest way to exercise the socket path with no instrument present:
@@ -52,13 +52,10 @@ with Rigol.Acquire;
 
 procedure LAN_Demo is
 
-   Default_Host : constant String := "192.168.1.100";
-
    Transport : aliased Rigol_Transport.LAN.Handle;
    Scope     : Rigol.Oscilloscope (Transport'Access);
 
-   function Host return String is
-     (if Argument_Count >= 1 then Argument (1) else Default_Host);
+   function Host return String is (Argument (1));
 
    function Port return GNAT.Sockets.Port_Type is
    begin
@@ -69,6 +66,15 @@ procedure LAN_Demo is
    end Port;
 
 begin
+   --  No default address: one that is right for nobody's network would
+   --  only connect to whatever answers there
+   if Argument_Count < 1 then
+      Put_Line (Standard_Error, "usage: lan_demo HOST [PORT]   (the scope's address, "
+                & "shown on the scope under Utility, IO Setting, LAN Conf)");
+      Set_Exit_Status (2);
+      return;
+   end if;
+
    Put_Line ("Connecting to " & Host & ":" &
              GNAT.Sockets.Port_Type'Image (Port) & " ...");
 

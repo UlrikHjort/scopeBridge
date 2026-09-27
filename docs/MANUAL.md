@@ -49,9 +49,14 @@ Then start the server and the GUI together:
 ./scopebridge.sh --sim                 # no scope: a simulated one
 ```
 
-`scopebridge.sh` stops the server when you close the window. The scope's
-network address is shown on the scope under Utility -> IO Setting -> LAN
-Conf. For USB access without root, run `sudo make install-udev` once
+`192.168.0.83`, here and in the rest of the manual, is an example: use
+your scope's address, which it shows under Utility -> IO Setting -> LAN
+Conf. `sudo arp-scan --localnet` also finds it from the PC: it lists the
+devices on the network with their makers, a Rigol scope as "Rigol
+Technologies, Inc.".
+
+`scopebridge.sh` stops the server when you close the window. For USB
+access without root, run `sudo make install-udev` once
 (see the README's *USB access*).
 
 The parts can also be started on their own, which is what you do to use
