@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - 2026-09-28
 
 - An About box in the GUI, with the version and a small animated scope
   screen; every program has --version, and the server's hello tells its
@@ -8,7 +8,8 @@
 - Ready-made packages on the GitHub Releases page, for a Raspberry Pi
   (arm64) and for 64-bit PCs (amd64), built by GitHub Actions for every
   release.
-- Every pull request and push to main is built and tested on GitHub.
+- Every pull request and push to main is built and tested on GitHub, on
+  Ubuntu 22.04 and 24.04.
 - The docs say which addresses in examples are examples, and how to find
   your own, arp-scan included; lan_demo now needs the scope's address.
 
