@@ -9,6 +9,7 @@ and event of docs/PROTOCOL.md.
 
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -23,6 +24,10 @@ sys.path.insert(0, os.path.join(ROOT, "clients", "python"))
 from scopebridge_client import ServerError, ScopeBridgeClient  # noqa: E402
 
 SERVER = os.path.join(ROOT, "bin", "scopebridge-server")
+
+#  The version the programs are built with (server/src/scopebridge_version.ads)
+with open(os.path.join(ROOT, "server", "src", "scopebridge_version.ads"), encoding="utf-8") as f:
+    VERSION = re.search(r'Version : constant String := "([^"]+)"', f.read()).group(1)
 MEMORY_DEPTH = 1_200_000
 
 
@@ -82,6 +87,7 @@ class ServerTest(ServerBase):
         self.assertEqual(h["protocol"], 1)
         self.assertEqual(h["source"], "sim")
         self.assertIn("SIMULATED", h["idn"])
+        self.assertEqual(h["version"], VERSION)
 
     def test_malformed_requests(self):
         self.c.send_raw("this is not json")

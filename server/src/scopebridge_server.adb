@@ -47,6 +47,7 @@ with Rigol_Transport.LAN;
 with Rigol_Transport.Simulator;
 with Rigol_Transport.USBTMC;
 
+with Scopebridge_Version;
 with Server;
 with Server.Log;
 with Server.Session;
@@ -64,7 +65,8 @@ procedure Scopebridge_Server is
    Web_Port  : Natural := 0;       --  0: no web interface
    Web_Root  : Unbounded_String;   --  empty: Server.Web.Default_Root
 
-   Usage_Error : exception;
+   Usage_Error   : exception;
+   Version_Shown : exception;   --  --version: done, successfully
 
    procedure Usage is
    begin
@@ -73,7 +75,7 @@ procedure Scopebridge_Server is
       Put_Line (Standard_Error,
         "                    [--port N] [--listen ADDRESS] [--log FILE]");
       Put_Line (Standard_Error,
-        "                    [--web PORT [--web-root DIR]]");
+        "                    [--web PORT [--web-root DIR]]    or: --version");
       Put_Line (Standard_Error,
         "  Serves the scope over the protocol in docs/PROTOCOL.md,");
       Put_Line (Standard_Error,
@@ -116,6 +118,9 @@ procedure Scopebridge_Server is
             elsif A = "--log"    then Log_File := To_Unbounded_String (Value);
             elsif A = "--web"    then Web_Port := Natural'Value (Value);
             elsif A = "--web-root" then Web_Root := To_Unbounded_String (Value);
+            elsif A = "--version" then
+               Put_Line ("scopebridge-server " & Scopebridge_Version.Version);
+               raise Version_Shown;
             elsif A in "-h" | "--help" then
                Usage;
                raise Usage_Error with "";
@@ -262,6 +267,8 @@ begin
    end;
 
 exception
+   when Version_Shown =>
+      null;
    when E : Usage_Error =>
       if Exception_Message (E) /= "" then
          Put_Line (Standard_Error, "scopebridge-server: " & Exception_Message (E));

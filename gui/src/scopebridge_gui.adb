@@ -37,6 +37,7 @@ with GNAT.Sockets;
 
 with Gtk.Main;
 
+with Scopebridge_Version;
 with Server;
 with Gui_Client;
 with Main_Window;
@@ -47,14 +48,17 @@ procedure Scopebridge_Gui is
    I    : Positive := 1;
 begin
    while I <= Argument_Count loop
-      if Argument (I) = "--host" and then I < Argument_Count then
+      if Argument (I) = "--version" then
+         Put_Line ("scopebridge-gui " & Scopebridge_Version.Version);
+         return;
+      elsif Argument (I) = "--host" and then I < Argument_Count then
          Host := To_Unbounded_String (Argument (I + 1));
          I := I + 2;
       elsif Argument (I) = "--port" and then I < Argument_Count then
          Port := GNAT.Sockets.Port_Type'Value (Argument (I + 1));
          I := I + 2;
       else
-         Put_Line (Standard_Error, "usage: scopebridge-gui [--host HOST] [--port N]");
+         Put_Line (Standard_Error, "usage: scopebridge-gui [--host HOST] [--port N] | --version");
          Set_Exit_Status (Failure);
          return;
       end if;

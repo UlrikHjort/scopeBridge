@@ -204,6 +204,7 @@ class Scope:
         port = int(port or os.environ.get("RIGOL_PORT", 5026))
         self.client = ScopeBridgeClient(host, port, timeout)
         self.idn = self.client.hello.get("idn")
+        self.server_version = self.client.hello.get("version")
         self.source = self.client.hello.get("source")
 
     def close(self):
