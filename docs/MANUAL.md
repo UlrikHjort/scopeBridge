@@ -77,6 +77,10 @@ triggered, `WAIT`, `STOP`, ...); a short line at the right edge marks the
 trigger level. The status line at the bottom shows the connection and any
 errors.
 
+*About*, at the very bottom of the panel, shows the version, with a small
+scope screen doing the classic trick: a sine turning into a Lissajous
+figure and back.
+
 The panel on the right has the controls. They follow the scope: whatever
 you change on the scope's front panel appears in the GUI within about
 1.5 s, and whatever you change in the GUI is sent to the scope and read

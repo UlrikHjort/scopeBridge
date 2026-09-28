@@ -70,6 +70,20 @@ jobs:
           ref: ${{ env.TAG || github.sha }}
           fetch-depth: 0
 
+      - name: The version in the code is the tag's
+        if: env.TAG != ''
+        run: |
+          # (Releases from before the version was in the code have no file)
+          file=server/src/scopebridge_version.ads
+          if [ -f "$file" ]; then
+            code=$(sed -n 's/.*Version : constant String := "\([^"]*\)".*/\1/p' "$file")
+            if [ "$code" != "${TAG#v}" ]; then
+              echo "::error::The code says version $code, but the tag is $TAG: set $file to ${TAG#v} first"
+              exit 1
+            fi
+            echo "Version $code, as the tag says"
+          fi
+
       - name: Install the tools
         run: |
           sudo apt-get update

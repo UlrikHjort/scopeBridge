@@ -55,6 +55,7 @@ with Gtk.Toggle_Button;        use Gtk.Toggle_Button;
 with Gtk.Widget;               use Gtk.Widget;
 with Gtk.Window;               use Gtk.Window;
 
+with About_Box;
 with Decode_Panel;
 with Timing_Panel;
 with Server.Wire;
@@ -1792,6 +1793,12 @@ package body Main_Window is
       Gtk.Main.Main_Quit;
    end On_Destroy;
 
+   procedure On_About (Self : access Gtk_Button_Record'Class) is
+      pragma Unreferenced (Self);
+   begin
+      About_Box.Show (Win);
+   end On_About;
+
    procedure Create is
       Top    : Gtk_Hbox;
       Panel  : Gtk_Vbox;
@@ -2198,6 +2205,14 @@ package body Main_Window is
          G.Attach (New_Button ("Screenshot ...", On_Screenshot'Access), 0, 2);
          G.Attach (New_Button ("Export CSV ...", On_Export'Access), 1, 2);
          Panel.Pack_Start (Framed ("Capture", G), Expand => False);
+      end;
+
+      --  About, small, at the bottom
+      declare
+         B : constant Gtk_Button := New_Button ("About", On_About'Access);
+      begin
+         B.Set_Halign (Align_End);
+         Panel.Pack_Start (B, Expand => False, Padding => 4);
       end;
 
       Gui_Client.Set_Event_Handler (On_Event'Access);

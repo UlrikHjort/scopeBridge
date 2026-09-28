@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- An About box in the GUI, with the version and a small animated scope
+  screen; every program has --version, and the server's hello tells its
+  version (in Python: Scope.server_version).
 - Ready-made packages on the GitHub Releases page, for a Raspberry Pi
   (arm64) and for 64-bit PCs (amd64), built by GitHub Actions for every
   release.

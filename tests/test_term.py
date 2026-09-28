@@ -14,7 +14,7 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 
-from test_server import SERVER, free_port  # noqa: E402
+from test_server import SERVER, VERSION, free_port  # noqa: E402
 
 TERM = os.path.join(ROOT, "bin", "scopebridge-term")
 
@@ -38,6 +38,13 @@ class TermTest(unittest.TestCase):
         return subprocess.run([TERM, "--port", str(self.port)],
                               input="scpi *RST\n" + commands, capture_output=True,
                               text=True, timeout=60)
+
+    def test_versions(self):
+        for program in ("server", "gui", "term"):
+            out = subprocess.run([os.path.join(ROOT, "bin", "scopebridge-" + program), "--version"],
+                                 capture_output=True, text=True, timeout=10)
+            self.assertEqual(out.returncode, 0, program)
+            self.assertEqual(out.stdout, "scopebridge-%s %s\n" % (program, VERSION))
 
     def test_settings_and_measure(self):
         out = self.run_term("ch 1 scale 500m coupling ac\ntb scale 2m\nstatus\n"

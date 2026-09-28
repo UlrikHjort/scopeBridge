@@ -32,6 +32,7 @@ with Ada.Calendar;  use Ada.Calendar;
 with Rigol.Display;
 with Rigol.IEEE488;
 
+with Scopebridge_Version;
 with Server.Log;
 
 separate (Server.Session)
@@ -362,6 +363,7 @@ is
       Message : constant JSON_Value := Object ("event", "hello");
    begin
       Set_Field (Message, "protocol", Integer (Protocol_Version));
+      Set_Field (Message, "version", Scopebridge_Version.Version);
       Set_Field (Message, "source", Source);
       Set_Field (Message, "client", Integer (Id));
       begin

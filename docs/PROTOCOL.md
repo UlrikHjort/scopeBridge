@@ -128,10 +128,12 @@ about 1 / duration of the capture (see `spectrum`).
 
 ### `hello`
 Sent once when a client connects. `client` numbers the connection, as in
-the command log.
+the command log; `version` is the server's version (as `--version` prints
+it), `protocol` the version of this protocol.
 ```
-{"event": "hello", "protocol": 1, "idn": "RIGOL TECHNOLOGIES,DS1202Z-E,...",
- "source": "usb:/dev/usbtmc4", "client": 1}
+{"event": "hello", "protocol": 1, "version": "1.1.0",
+ "idn": "RIGOL TECHNOLOGIES,DS1202Z-E,...", "source": "usb:/dev/usbtmc4",
+ "client": 1}
 ```
 
 ### `frame`
