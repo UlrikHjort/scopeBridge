@@ -83,13 +83,13 @@ sudo make install                 # into /usr/local; or PREFIX=...
 This installs `scopebridge-server`, `scopebridge-gui`, `scopebridge-term`, `scopebridge` (the
 start script), `scopebridge-run` (the Python runner) and `scopebridge-tk`, man pages
 for them, the Python module (in `share/scopebridge/python`), this README, the
-manual and the protocol (in `share/doc/scopebridge`), and a systemd user unit
-that keeps a server running:
+manual and the protocol (in `share/doc/scopebridge`), an example settings
+file, and a systemd user unit that keeps a server running with the
+settings in `~/.scopebridgerc` (see *Settings* below):
 
 ```
-mkdir -p ~/.config/scopebridge
-echo 'SCOPEBRIDGE_SERVER_ARGS=--lan 192.168.0.83' > ~/.config/scopebridge/server.conf
-systemctl --user enable --now scopebridge-server    # default: --usb auto
+cp /usr/local/share/doc/scopebridge/scopebridgerc.example ~/.scopebridgerc
+systemctl --user enable --now scopebridge-server    # the scope on USB, unless it says otherwise
 ```
 
 **The addresses in the examples are examples**, from one network:
@@ -130,6 +130,34 @@ parts can also be started separately:
 
 Any number of clients can use one server at once, for example the GUI and
 a script, or both GUIs (`clients/python/scopebridge_tk.py` is the small one).
+
+### Settings: ~/.scopebridgerc
+
+The programs take their defaults from `~/.scopebridgerc`; options on the
+command line win over it. `contrib/scopebridgerc.example` (installed in
+`share/doc/scopebridge`) is a commented start:
+
+```
+[server]
+source = usb auto       # or: usb /dev/usbtmc0, lan 192.168.0.83, sim
+port   = 5026
+listen = 127.0.0.1      # 0.0.0.0: from the network too
+web    = 8080           # the web interface; empty: none
+
+[client]
+host   = 192.168.0.19   # where the server runs: here 127.0.0.1
+port   = 5026
+```
+
+`scopebridge-server` (and its service) reads `[server]`; without a source
+anywhere, it looks for the scope on USB. `scopebridge-gui`,
+`scopebridge-term`, `scopebridge-run` and Python's `Scope()` read
+`[client]`. `scopebridge` reads both: with `[client] host` set to another
+computer, it starts only the GUI, connected there, so a plain `scopebridge`
+opens the scope on your Raspberry Pi. A line the programs cannot use gives
+a warning with its line number. `$SCOPEBRIDGE_RC` names another file
+instead (empty: none); `$SCOPEBRIDGE_HOST` and `$SCOPEBRIDGE_PORT` win over
+`[client]` for scripts.
 
 ### The web interface
 
@@ -260,11 +288,11 @@ root. If it says you are not in the `plugdev` group yet: `sudo usermod
 -aG plugdev $USER`, and log in again.
 
 **4. Start the server as a service**, as yourself (not root), with the
-scope on USB and the web interface on port 8080:
+scope on USB and the web interface on port 8080, as set in
+`~/.scopebridgerc` (see *Settings*):
 
 ```
-mkdir -p ~/.config/scopebridge
-echo 'SCOPEBRIDGE_SERVER_ARGS=--usb auto --listen 0.0.0.0 --web 8080' > ~/.config/scopebridge/server.conf
+printf '[server]\nsource = usb auto\nlisten = 0.0.0.0\nweb = 8080\n' > ~/.scopebridgerc
 systemctl --user daemon-reload
 systemctl --user enable --now scopebridge-server
 sudo loginctl enable-linger $USER       # start it at boot, without a login

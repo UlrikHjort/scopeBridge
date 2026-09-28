@@ -19,6 +19,11 @@ import time
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+#  Never the user's own ~/.scopebridgerc: its [client] host could send
+#  the tests to a real scope elsewhere
+os.environ["SCOPEBRIDGE_RC"] = ""
+
 sys.path.insert(0, os.path.join(ROOT, "clients", "python"))
 
 from scopebridge_client import ServerError, ScopeBridgeClient  # noqa: E402

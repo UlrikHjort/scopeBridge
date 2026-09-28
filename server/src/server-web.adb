@@ -72,8 +72,8 @@ package body Server.Web is
    function Default_Root return String is
       Here : constant String := Program_Directory;
    begin
-      if Ada.Environment_Variables.Exists ("RIGOL_WEB") then
-         return Ada.Environment_Variables.Value ("RIGOL_WEB");
+      if Ada.Environment_Variables.Exists ("SCOPEBRIDGE_WEB") then
+         return Ada.Environment_Variables.Value ("SCOPEBRIDGE_WEB");
       elsif Here = "" then
          return "";
       end if;

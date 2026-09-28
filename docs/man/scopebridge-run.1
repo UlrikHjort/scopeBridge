@@ -45,7 +45,11 @@ the port.
 .PP
 .BI \-\-host " HOST"
 uses the server on another computer (default:
-.BR $RIGOL_HOST ,
+.BR $SCOPEBRIDGE_HOST ,
+else
+.B host
+in the [client] section of
+.IR ~/.scopebridgerc ,
 else 127.0.0.1); it cannot be combined with
 .BR \-\-usb ,
 .B \-\-lan

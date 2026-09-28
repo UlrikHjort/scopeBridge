@@ -31,22 +31,38 @@
 
 with Ada.Command_Line;       use Ada.Command_Line;
 with Ada.Exceptions;         use Ada.Exceptions;
+with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;  use Ada.Strings.Unbounded;
 with Ada.Text_IO;            use Ada.Text_IO;
 with GNAT.Sockets;
 
 with Gtk.Main;
 
+with Scopebridge_Config;
 with Scopebridge_Version;
 with Server;
 with Gui_Client;
 with Main_Window;
 
 procedure Scopebridge_Gui is
-   Host : Unbounded_String := To_Unbounded_String ("127.0.0.1");
+   --  The defaults: ~/.scopebridgerc's [client], else this computer
+   function Setting (Key, Default : String) return String is
+     (if Scopebridge_Config.Get ("client", Key) /= ""
+      then Scopebridge_Config.Get ("client", Key) else Default);
+
+   Host : Unbounded_String := To_Unbounded_String (Setting ("host", "127.0.0.1"));
    Port : GNAT.Sockets.Port_Type := Server.Default_Port;
    I    : Positive := 1;
 begin
+   begin
+      Port := GNAT.Sockets.Port_Type'Value
+        (Setting ("port", Ada.Strings.Fixed.Trim (Server.Default_Port'Image, Ada.Strings.Left)));
+   exception
+      when Constraint_Error =>
+         Put_Line (Standard_Error, "scopebridge-gui: " & Scopebridge_Config.File_Name
+                   & ": [client] port is not a port number; using"
+                   & Server.Default_Port'Image);
+   end;
    while I <= Argument_Count loop
       if Argument (I) = "--version" then
          Put_Line ("scopebridge-gui " & Scopebridge_Version.Version);

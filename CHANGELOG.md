@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Settings in ~/.scopebridgerc: [server] (the scope's source, port,
+  listen address, web port) and [client] (where the server is), for every
+  program; command-line options win over it. With [client] host set to a
+  Raspberry Pi, a plain scopebridge opens the scope there. An example:
+  contrib/scopebridgerc.example.
+- scopebridge-server without a source looks for the scope on USB, and the
+  service follows ~/.scopebridgerc.
+- The environment variables are SCOPEBRIDGE_HOST, SCOPEBRIDGE_PORT and
+  SCOPEBRIDGE_WEB (before: RIGOL_HOST, RIGOL_PORT, RIGOL_WEB).
+
 ## 1.1.0 - 2026-09-28
 
 - An About box in the GUI, with the version and a small animated scope

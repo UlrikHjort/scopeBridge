@@ -65,6 +65,21 @@ The server's port.
 Print the version and exit.
 .SH FILES
 .TP
+.I ~/.scopebridgerc
+Settings:
+.B host
+and
+.B port
+in its
+.B [client]
+section say where the server is, when not given as options.
+.B scopebridge
+also reads
+.BR [server] ,
+and with
+.B [client] host
+set to another computer starts only the GUI, connected there.
+.TP
 .I @DOCDIR@/MANUAL.md
 The user manual, with screenshots of every panel.
 .SH SEE ALSO

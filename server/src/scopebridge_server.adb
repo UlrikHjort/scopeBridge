@@ -47,6 +47,7 @@ with Rigol_Transport.LAN;
 with Rigol_Transport.Simulator;
 with Rigol_Transport.USBTMC;
 
+with Scopebridge_Config;
 with Scopebridge_Version;
 with Server;
 with Server.Log;
@@ -63,6 +64,7 @@ procedure Scopebridge_Server is
    Listen_On : Unbounded_String := To_Unbounded_String ("127.0.0.1");
    Log_File  : Unbounded_String;   --  empty: no command log
    Web_Port  : Natural := 0;       --  0: no web interface
+   Port_Given, Listen_Given, Web_Given : Boolean := False;   --  on the command line
    Web_Root  : Unbounded_String;   --  empty: Server.Web.Default_Root
 
    Usage_Error   : exception;
@@ -82,8 +84,67 @@ procedure Scopebridge_Server is
         "  on 127.0.0.1:" & Trim (Server.Default_Port'Image, Ada.Strings.Left)
         & " unless told otherwise.  --web also serves the browser");
       Put_Line (Standard_Error,
-        "  interface (web/) on PORT, at the same address.");
+        "  interface (web/) on PORT, at the same address.  Options left out come");
+      Put_Line (Standard_Error,
+        "  from ~/.scopebridgerc ([server]); without a source, --usb auto.");
    end Usage;
+
+   --  What the command line left open, from ~/.scopebridgerc's [server];
+   --  without a source anywhere, the scope on USB
+   procedure Apply_Settings_File is
+      package Config renames Scopebridge_Config;
+
+      function Setting (Key : String) return String is (Config.Get ("server", Key));
+
+      procedure Bad (Key : String; Should : String) is
+      begin
+         raise Usage_Error with Config.File_Name & ": [server] " & Key & " = " & Setting (Key)
+           & ": " & Should;
+      end Bad;
+   begin
+      if Kind = None then
+         declare
+            Source : constant String := Setting ("source");
+            Space  : constant Natural := Index (Source, " ");
+            Word   : constant String :=
+              (if Space = 0 then Source else Source (Source'First .. Space - 1));
+            Rest   : constant String :=
+              (if Space = 0 then "" else Trim (Source (Space + 1 .. Source'Last), Ada.Strings.Both));
+         begin
+            if Source = "" then
+               Kind := USB;
+               Target := To_Unbounded_String ("auto");
+            elsif Word = "usb" and then Rest /= "" then
+               Kind := USB;
+               Target := To_Unbounded_String (Rest);
+            elsif Word = "lan" and then Rest /= "" then
+               Kind := LAN;
+               Target := To_Unbounded_String (Rest);
+            elsif Source = "sim" then
+               Kind := Sim;
+            else
+               Bad ("source", "it must be usb DEVICE, usb auto, lan HOST[:PORT] or sim");
+            end if;
+         end;
+      end if;
+      if not Port_Given and then Setting ("port") /= "" then
+         begin
+            Port := Port_Type'Value (Setting ("port"));
+         exception
+            when Constraint_Error => Bad ("port", "not a port number");
+         end;
+      end if;
+      if not Listen_Given and then Setting ("listen") /= "" then
+         Listen_On := To_Unbounded_String (Setting ("listen"));
+      end if;
+      if not Web_Given and then Setting ("web") /= "" then
+         begin
+            Web_Port := Natural'Value (Setting ("web"));
+         exception
+            when Constraint_Error => Bad ("web", "not a port number (or empty, for none)");
+         end;
+      end if;
+   end Apply_Settings_File;
 
    procedure Parse_Arguments is
       I : Positive := 1;
@@ -113,10 +174,10 @@ procedure Scopebridge_Server is
             if    A = "--usb"    then Set_Source (USB, Value);
             elsif A = "--lan"    then Set_Source (LAN, Value);
             elsif A = "--sim"    then Set_Source (Sim, "");
-            elsif A = "--port"   then Port := Port_Type'Value (Value);
-            elsif A = "--listen" then Listen_On := To_Unbounded_String (Value);
+            elsif A = "--port"   then Port := Port_Type'Value (Value); Port_Given := True;
+            elsif A = "--listen" then Listen_On := To_Unbounded_String (Value); Listen_Given := True;
             elsif A = "--log"    then Log_File := To_Unbounded_String (Value);
-            elsif A = "--web"    then Web_Port := Natural'Value (Value);
+            elsif A = "--web"    then Web_Port := Natural'Value (Value); Web_Given := True;
             elsif A = "--web-root" then Web_Root := To_Unbounded_String (Value);
             elsif A = "--version" then
                Put_Line ("scopebridge-server " & Scopebridge_Version.Version);
@@ -130,9 +191,7 @@ procedure Scopebridge_Server is
          end;
          I := I + 1;
       end loop;
-      if Kind = None then
-         raise Usage_Error with "give one of --usb, --lan, --sim";
-      end if;
+      Apply_Settings_File;
    end Parse_Arguments;
 
    --  The usbtmc device node of the first Rigol scope (USB vendor 1ab1),

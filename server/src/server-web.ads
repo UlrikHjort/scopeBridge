@@ -38,7 +38,7 @@ with Server.Wire;
 
 package Server.Web is
 
-   --  Where the browser client's files are: $RIGOL_WEB if set, else web/
+   --  Where the browser client's files are: $SCOPEBRIDGE_WEB if set, else web/
    --  next to bin/ (the source tree), else share/scopebridge/web next to bin/
    --  (installed).  "" if none is found.
    function Default_Root return String;

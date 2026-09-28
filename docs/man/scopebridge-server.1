@@ -95,15 +95,16 @@ Print the version and exit.
 .B make install
 installs a systemd user unit,
 .IR scopebridge-server.service ,
-which runs the server with the options in
+which runs the server with the settings in
+.IR ~/.scopebridgerc ,
+and the options in
 .I ~/.config/scopebridge/server.conf
-(default:
-.BR "SCOPEBRIDGE_SERVER_ARGS=\-\-usb auto" ):
+if there are any
+.RB ( SCOPEBRIDGE_SERVER_ARGS=... ):
 .PP
 .nf
 .RS
-mkdir -p ~/.config/scopebridge
-echo 'SCOPEBRIDGE_SERVER_ARGS=\-\-lan 192.168.0.83' > ~/.config/scopebridge/server.conf
+printf '[server]\\nsource = lan 192.168.0.83\\n' > ~/.scopebridgerc
 systemctl \-\-user enable \-\-now scopebridge-server
 journalctl \-\-user \-u scopebridge-server
 .RE
@@ -118,6 +119,18 @@ uses a running server rather than starting one.
 0 is never returned while serving; 1 if the scope cannot be opened, the
 port cannot be bound, or the arguments are wrong.
 .SH FILES
+.TP
+.I ~/.scopebridgerc
+Settings, in its
+.B [server]
+section:
+.BR source " (" "usb auto" ", " "usb DEVICE" ", " "lan HOST[:PORT]" ", " sim ),
+.BR port ,
+.BR listen " and " web ,
+for the options not given; without a source anywhere,
+.BR "\-\-usb auto" .
+.B $SCOPEBRIDGE_RC
+names another file (empty: none).
 .TP
 .I @DOCDIR@/PROTOCOL.md
 The protocol.
