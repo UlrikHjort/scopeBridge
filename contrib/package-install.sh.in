@@ -41,10 +41,10 @@ fi
 cat <<END
 
 To keep a server running, as yourself (not root), with the scope on USB and
-the web interface on port 8080:
+the web interface on port 8080 (settings in ~/.scopebridgerc; a commented
+example: @PREFIX@/share/doc/scopebridge/scopebridgerc.example):
 
-  mkdir -p ~/.config/scopebridge
-  echo 'SCOPEBRIDGE_SERVER_ARGS=--usb auto --listen 0.0.0.0 --web 8080' > ~/.config/scopebridge/server.conf
+  printf '[server]\nsource = usb auto\nlisten = 0.0.0.0\nweb = 8080\n' > ~/.scopebridgerc
   systemctl --user daemon-reload
   systemctl --user enable --now scopebridge-server
   sudo loginctl enable-linger ${user:-\$USER}     # start it at boot, without a login

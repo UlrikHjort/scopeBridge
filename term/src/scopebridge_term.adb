@@ -46,6 +46,7 @@ with Interfaces.C;
 with GNAT.Sockets;
 with GNATCOLL.JSON;            use GNATCOLL.JSON;
 
+with Scopebridge_Config;
 with Scopebridge_Version;
 with Server;
 with Server.Wire;
@@ -1384,11 +1385,25 @@ procedure Scopebridge_Term is
       end if;
    end Execute;
 
-   Host : Unbounded_String := To_Unbounded_String ("127.0.0.1");
+   --  The defaults: ~/.scopebridgerc's [client], else this computer
+   function Setting (Key, Default : String) return String is
+     (if Scopebridge_Config.Get ("client", Key) /= ""
+      then Scopebridge_Config.Get ("client", Key) else Default);
+
+   Host : Unbounded_String := To_Unbounded_String (Setting ("host", "127.0.0.1"));
    Port : GNAT.Sockets.Port_Type := Server.Default_Port;
    I    : Positive := 1;
    Failures : Natural := 0;
 begin
+   begin
+      Port := GNAT.Sockets.Port_Type'Value
+        (Setting ("port", Trim (Server.Default_Port'Image, Ada.Strings.Left)));
+   exception
+      when Constraint_Error =>
+         Put_Line (Standard_Error, "scopebridge-term: " & Scopebridge_Config.File_Name
+                   & ": [client] port is not a port number; using"
+                   & Server.Default_Port'Image);
+   end;
    while I <= Argument_Count loop
       if Argument (I) = "--version" then
          Put_Line ("scopebridge-term " & Scopebridge_Version.Version);

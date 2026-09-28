@@ -1,0 +1,29 @@
+# ~/.scopebridgerc: ScopeBridge's settings. Copy this file there and
+# change what you need. Options on the command line win over it; a setting
+# left out has the value shown. '#' starts a comment.
+#
+# Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
+
+[server]
+# Where the scope is:
+#   usb auto            the first Rigol scope on USB
+#   usb /dev/usbtmc0    that USB device
+#   lan 192.168.0.83    on the network, at the scope's address
+#   sim                 a simulated scope, for trying things out
+source = usb auto
+
+# The port clients connect to, and the address to listen on: 127.0.0.1
+# for this computer only, 0.0.0.0 for the network (no password: only on
+# a network you trust)
+port   = 5026
+listen = 127.0.0.1
+
+# The web interface's port, e.g. 8080; empty for none
+web    =
+
+[client]
+# Where scopebridge, scopebridge-gui, scopebridge-term and scripts find the
+# server: 127.0.0.1 for one here, or the address of the computer it runs
+# on, a Raspberry Pi for instance
+host = 127.0.0.1
+port = 5026

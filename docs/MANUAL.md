@@ -676,6 +676,9 @@ clients/python/scopebridge_run.py --replay session.jsonl --timing     # at the o
 the scope is connected to, such as a Raspberry Pi, with `--listen 0.0.0.0`,
 and the clients anywhere on the network: `scopebridge --host raspberrypi.local`
 starts only the GUI, and `scopebridge-term` and `scopebridge-run` take `--host` too.
+With the Pi's address as `host` in the `[client]` section of
+`~/.scopebridgerc`, a plain `scopebridge` does the same (the README's
+*Settings* describes the file).
 The README's *The server on another computer* describes setting up a Pi,
 and reaching it safely through SSH.
 

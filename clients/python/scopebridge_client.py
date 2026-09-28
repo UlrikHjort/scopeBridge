@@ -14,8 +14,41 @@ are queued; take them with next_event().
 
 import collections
 import json
+import os
 import socket
 import struct
+
+
+def settings(section):
+    """The settings of a [section] of ~/.scopebridgerc ($SCOPEBRIDGE_RC instead
+    if set; empty: none), as a dict; {} if there is no file.  The same file,
+    and the same rules, as the Ada programs': '#' starts a comment, and
+    options given explicitly win over it."""
+    name = os.environ.get("SCOPEBRIDGE_RC")
+    if name is None:
+        name = os.path.join(os.path.expanduser("~"), ".scopebridgerc")
+    result, current = {}, None
+    try:
+        with open(name, encoding="utf-8") as f:
+            for line in f:
+                line = line.split("#", 1)[0].strip()
+                if line.startswith("[") and line.endswith("]"):
+                    current = line[1:-1].strip().lower()
+                elif "=" in line and current == section:
+                    key, value = line.split("=", 1)
+                    result[key.strip().lower()] = value.strip()
+    except OSError:
+        pass
+    return result
+
+
+def default_server():
+    """Where to find the server when not told: $SCOPEBRIDGE_HOST and
+    $SCOPEBRIDGE_PORT, then ~/.scopebridgerc's [client], then 127.0.0.1:5026."""
+    client = settings("client")
+    host = os.environ.get("SCOPEBRIDGE_HOST") or client.get("host") or "127.0.0.1"
+    port = int(os.environ.get("SCOPEBRIDGE_PORT") or client.get("port") or 5026)
+    return host, port
 
 
 class ServerError(Exception):

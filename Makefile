@@ -28,6 +28,9 @@
 # Copyright (C) 2026 By Ulrik Hørlyk Hjort; MIT licence, see LICENSE.
 
 GPRBUILD := gprbuild -q -p
+
+#  Tests and builds never read the user's own ~/.scopebridgerc
+export SCOPEBRIDGE_RC :=
 BIN_DIR  := bin
 
 .PHONY: all lib examples server gui term check check-server check-web install uninstall \
@@ -91,6 +94,7 @@ check-server: server term
 	python3 tests/test_scripting.py
 	python3 tests/test_term.py
 	python3 tests/test_web.py
+	python3 tests/test_settings.py
 
 #  The web interface in headless Firefox (skipped without Firefox)
 check-web: server
@@ -122,6 +126,7 @@ install:
 	  $(SUBST) docs/man/$$m > $(DESTDIR)$(MANDIR)/$$m; chmod 644 $(DESTDIR)$(MANDIR)/$$m; done
 	echo '.so man1/scopebridge-gui.1' > $(DESTDIR)$(MANDIR)/scopebridge.1
 	install -m 644 README.md docs/MANUAL.md docs/PROTOCOL.md $(DESTDIR)$(DOCDIR)
+	install -m 644 contrib/scopebridgerc.example $(DESTDIR)$(DOCDIR)
 	install -m 644 docs/images/*.png $(DESTDIR)$(DOCDIR)/images
 	cp -r examples/scripts $(DESTDIR)$(DOCDIR)/examples
 	$(SUBST) contrib/scopebridge-server.service.in \

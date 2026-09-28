@@ -14,8 +14,9 @@
         print(cap.spectrum().peak())
 
 The server must be running (scopebridge.sh, or scopebridge_run.py which can start one).
-Scope() connects to RIGOL_HOST / RIGOL_PORT from the environment if set
-(scopebridge_run.py sets them), else 127.0.0.1:5026.  Several scripts, and the
+Scope() connects to $SCOPEBRIDGE_HOST / $SCOPEBRIDGE_PORT if set
+(scopebridge_run.py sets them), else to [client] in ~/.scopebridgerc, else
+127.0.0.1:5026.  Several scripts, and the
 GUI, can be connected to the same server at once.
 
 Sample data comes as numpy arrays when numpy is installed, else as lists.
@@ -28,7 +29,7 @@ import csv
 import os
 import time
 
-from scopebridge_client import ServerError, ScopeBridgeClient
+from scopebridge_client import ServerError, ScopeBridgeClient, default_server
 
 try:
     import numpy
@@ -200,8 +201,9 @@ class Scope:
     server or the scope raise ServerError."""
 
     def __init__(self, host=None, port=None, timeout=60.0):
-        host = host or os.environ.get("RIGOL_HOST", "127.0.0.1")
-        port = int(port or os.environ.get("RIGOL_PORT", 5026))
+        default_host, default_port = default_server()
+        host = host or default_host
+        port = int(port or default_port)
         self.client = ScopeBridgeClient(host, port, timeout)
         self.idn = self.client.hello.get("idn")
         self.server_version = self.client.hello.get("version")

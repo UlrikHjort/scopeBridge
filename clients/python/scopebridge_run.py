@@ -45,7 +45,7 @@ def find_server():
 SERVER = find_server()
 
 sys.path.insert(0, HERE)
-from scopebridge_client import ServerError, ScopeBridgeClient  # noqa: E402
+from scopebridge_client import ServerError, ScopeBridgeClient, default_server  # noqa: E402
 
 
 def listening(host, port):
@@ -109,11 +109,13 @@ def main():
     source.add_argument("--usb", metavar="DEVICE")
     source.add_argument("--lan", metavar="HOST[:PORT]")
     source.add_argument("--sim", action="store_true")
-    parser.add_argument("--host", default=os.environ.get("RIGOL_HOST", "127.0.0.1"),
-                        help="the server's computer (default $RIGOL_HOST, else "
-                             "127.0.0.1)")
-    parser.add_argument("--port", type=int, default=5026,
-                        help="server port (default 5026)")
+    default_host, default_port = default_server()
+    parser.add_argument("--host", default=default_host,
+                        help="the server's computer (default $SCOPEBRIDGE_HOST, else "
+                             "[client] host in ~/.scopebridgerc, else 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=default_port,
+                        help="server port (default $SCOPEBRIDGE_PORT, else [client] "
+                             "port in ~/.scopebridgerc, else 5026)")
     parser.add_argument("--replay", metavar="LOG")
     parser.add_argument("--client", type=int, help="replay only this client")
     parser.add_argument("--timing", action="store_true",
@@ -143,8 +145,8 @@ def main():
         sys.exit("scopebridge_run: no server at %s:%d; start one, or give "
                  "--usb, --lan or --sim" % (options.host, options.port))
 
-    os.environ["RIGOL_HOST"] = options.host
-    os.environ["RIGOL_PORT"] = str(options.port)
+    os.environ["SCOPEBRIDGE_HOST"] = options.host
+    os.environ["SCOPEBRIDGE_PORT"] = str(options.port)
     try:
         if options.replay:
             failures = replay(options.replay, options.host, options.port, options.client,
