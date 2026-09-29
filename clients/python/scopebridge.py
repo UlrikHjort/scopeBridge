@@ -151,6 +151,8 @@ class Capture:
         self.info = info
         self.channel = info["ch"]
         self.points = info["points"]
+        if not info["x_inc"] or not self.points:
+            raise ServerError("the scope's memory holds no acquisition: did it trigger?")
         self.x_increment = info["x_inc"]
         self.sample_rate = 1.0 / info["x_inc"]
         self.duration = self.points * info["x_inc"]
@@ -230,8 +232,14 @@ class Scope:
     def stop(self):
         self.request("stop")
 
-    def single(self):
+    def single(self, settle=0.5):
+        """Arm a single acquisition.  Returns once the scope has left the
+        stopped state it may be in from before (at most settle seconds), so
+        that wait_for_trigger() cannot mistake that for the new one."""
         self.request("single")
+        deadline = time.time() + settle
+        while time.time() < deadline and self.trigger_status() == "stop":
+            time.sleep(0.02)
 
     def auto(self):
         self.request("auto")

@@ -17,7 +17,7 @@ DEFS     ?=
 CC       := avr-gcc
 CFLAGS   := -mmcu=$(MCU) -DF_CPU=$(F_CPU) -Os -std=gnu99 -Wall -Wextra $(DEFS)
 
-PROGRAMS := uart i2c spi timing delay
+PROGRAMS := uart i2c spi timing delay pwm irq_latency
 
 .PHONY: all clean format $(addprefix flash-,$(PROGRAMS))
 

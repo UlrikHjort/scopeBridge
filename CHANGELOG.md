@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Two more Arduino examples, with bench cases: pwm.c, PWM in hardware and
+  in software side by side (jitter, outliers, harmonics), and
+  irq_latency.c, the time from a hardware event to the interrupt's first
+  line, with the outliers of a critical section.
+- Python: Scope.single() returns once the scope has left the stopped state
+  of an earlier acquisition, so that wait_for_trigger() can no longer
+  mistake that for the new one and read an empty memory; an empty capture
+  is now a clear error.
 - Settings in ~/.scopebridgerc: [server] (the scope's source, port,
   listen address, web port) and [client] (where the server is), for every
   program; command-line options win over it. With [client] host set to a
