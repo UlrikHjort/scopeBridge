@@ -252,6 +252,34 @@ input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
 }
 .note:empty { display: none; }
 
+/* About: a small button at the bottom of the panel, and its box */
+.about-row { display: flex; justify-content: flex-end; margin: 4px 0; }
+.about-row button { min-height: 28px; padding: 3px 12px; font-size: 13px; }
+
+dialog.about {
+  width: min(420px, 92vw);
+  padding: 16px 20px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+dialog.about::backdrop { background: rgba(0, 0, 0, 0.6); }
+dialog.about h2 { margin: 0 0 4px; font-size: 28px; }
+dialog.about p { margin: 6px 0; }
+dialog.about .small { color: var(--muted); font-size: 12px; }
+dialog.about a { color: var(--accent); }
+#about-screen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  margin: 10px 0;
+  background: #000;
+  border-radius: 4px;
+}
+dialog.about form { margin-top: 10px; }
+
 /* Phones and narrow windows: the controls under the display */
 @media (max-width: 800px) {
   main { flex-direction: column; overflow-y: auto; }

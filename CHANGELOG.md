@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The web page has an About box too, with the version and the same
+  animated scope screen as the GTK GUI's.
 - Two more Arduino examples, with bench cases: pwm.c, PWM in hardware and
   in software side by side (jitter, outliers, harmonics), and
   irq_latency.c, the time from a hardware event to the interrupt's first
