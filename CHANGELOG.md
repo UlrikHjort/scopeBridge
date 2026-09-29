@@ -1,17 +1,7 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 - 2026-09-29
 
-- The web page has an About box too, with the version and the same
-  animated scope screen as the GTK GUI's.
-- Two more Arduino examples, with bench cases: pwm.c, PWM in hardware and
-  in software side by side (jitter, outliers, harmonics), and
-  irq_latency.c, the time from a hardware event to the interrupt's first
-  line, with the outliers of a critical section.
-- Python: Scope.single() returns once the scope has left the stopped state
-  of an earlier acquisition, so that wait_for_trigger() can no longer
-  mistake that for the new one and read an empty memory; an empty capture
-  is now a clear error.
 - Settings in ~/.scopebridgerc: [server] (the scope's source, port,
   listen address, web port) and [client] (where the server is), for every
   program; command-line options win over it. With [client] host set to a
@@ -19,6 +9,18 @@
   contrib/scopebridgerc.example.
 - scopebridge-server without a source looks for the scope on USB, and the
   service follows ~/.scopebridgerc.
+- The web page has an About box too, with the version and the same
+  animated scope screen as the GTK GUI's.
+- Two more Arduino examples, with bench cases: pwm.c, PWM in hardware and
+  in software side by side (jitter, outliers, harmonics), and
+  irq_latency.c, the time from a hardware event to the interrupt's first
+  line, with the outliers of a critical section.
+- Fixed: both GUIs showed the values of a measurement still on its way
+  after the measurements had been switched to another channel, or off.
+- Fixed, in Python: Scope.single() returns once the scope has left the
+  stopped state of an earlier acquisition, so that wait_for_trigger() can
+  no longer mistake that for the new one and read an empty memory; an
+  empty capture is now a clear error.
 - The environment variables are SCOPEBRIDGE_HOST, SCOPEBRIDGE_PORT and
   SCOPEBRIDGE_WEB (before: RIGOL_HOST, RIGOL_PORT, RIGOL_WEB).
 
