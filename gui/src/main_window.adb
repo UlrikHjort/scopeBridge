@@ -729,9 +729,14 @@ package body Main_Window is
       if Name = "frame" then
          Scope_View.Live_Frame (Integer'(Get (Event, "ch")), Event, Payload);
       elsif Name = "measure" then
-         Show_Measurements (Event);
-         if Recording then
-            Record_Row (Event);
+         --  Only for the channel chosen now: one still on its way when the
+         --  choice changed (or measuring was turned off) would show old
+         --  values
+         if Integer'(Get (Event, "ch")) = Measured_Channel then
+            Show_Measurements (Event);
+            if Recording then
+               Record_Row (Event);
+            end if;
          end if;
       elsif Name = "math" then
          Scope_View.Math_Frame (Event, Payload);

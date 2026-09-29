@@ -778,6 +778,9 @@ function onEvent(event, payload) {
       scope.liveFrame(event.ch, event, payload);
       break;
     case "measure":
+      // Only for the channel chosen now: one still on its way when the
+      // choice changed (or measuring was turned off) would show old values
+      if (event.ch !== Number($("meas-ch").value)) break;
       showMeasurements(event);
       recordRow(event);
       break;
