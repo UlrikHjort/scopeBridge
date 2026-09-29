@@ -7,6 +7,7 @@
 import { Connection } from "./conn.js";
 import { DecodePanel } from "./decode.js";
 import { TimingPanel } from "./timing.js";
+import { AboutBox } from "./about.js";
 import { ScopeView } from "./scope.js";
 import { SpectrumView } from "./spectrum.js";
 import {
@@ -84,6 +85,7 @@ const scope = new ScopeView($("scope"), conn);
 const spectrum = new SpectrumView($("spectrum"));
 const decode = new DecodePanel(conn, scope, say);
 const timing = new TimingPanel(conn, scope, say);
+const about = new AboutBox();
 
 // Send a setting; afterwards read the settings back (the scope may round)
 function set(cmd, members) {
@@ -769,6 +771,7 @@ function onEvent(event, payload) {
       $("title").textContent = idn.length > 1 ? name + " " + idn[1] : "ScopeBridge";
       document.title = "ScopeBridge - " + $("title").textContent;
       $("connection").textContent = event.source + (event.idn ? "" : " - the scope does not answer");
+      about.setVersion(event.version);
       refreshStatus();
       refreshRefs();
       if (scope.mode === "live") startLive();
@@ -820,4 +823,4 @@ buildControls();
 setInterval(refreshStatus, STATUS_INTERVAL_MS);
 
 // The page's parts, for a look in the browser's console (and the tests)
-window.scopebridge = { conn, scope, spectrum, decode, timing };
+window.scopebridge = { conn, scope, spectrum, decode, timing, about };

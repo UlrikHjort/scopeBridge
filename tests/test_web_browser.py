@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.join(ROOT, "tests"))
 sys.path.insert(0, os.path.join(ROOT, "clients", "python"))
 
 from scopebridge import Scope  # noqa: E402
-from test_server import SERVER, free_port  # noqa: E402
+from test_server import SERVER, VERSION, free_port  # noqa: E402
 
 # A user's actions: set a control and fire its change event, or click
 SET = """const el = document.querySelector(arguments[0]);
@@ -298,6 +298,24 @@ class BrowserTest(unittest.TestCase):
         self.assertTrue(self.ff.js("return document.getElementById('timing').hidden"))
         self.scope.scpi(":SIMulator:SIGNal NORMal")
         self.act(CLICK, "#live", wait=1)
+
+    def test_15_about(self):
+        self.act(CLICK, "#about-open", wait=1)
+        self.assertTrue(self.ff.js("return document.getElementById('about').open"))
+        self.assertEqual(self.ff.js(TEXT, "#about-version"), "Version " + VERSION)
+        self.assertEqual(self.ff.js("return document.activeElement.id"), "about-close")
+        # the screen is drawn: yellow in the middle row of the trace's pixels
+        drawn = self.ff.js("""
+            const c = document.getElementById('about-screen');
+            const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+            let yellow = 0;
+            for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 180 && d[i + 2] < 120) yellow++;
+            return yellow;""")
+        self.assertGreater(drawn, 100)
+        # closed (as by Close or Escape), the animation stops
+        self.act("document.getElementById('about').close()")
+        self.assertFalse(self.ff.js("return document.getElementById('about').open"))
+        self.assertIsNone(self.js("return r.about.timer"))
 
     def test_99_reconnects(self):
         type(self).server.kill()

@@ -131,7 +131,7 @@ class WebTest(unittest.TestCase):
         self.assertIn(b"Content-Type: text/html", page)
         self.assertIn(b'<script type="module" src="app.js">', page)
         for module in ("app.js", "conn.js", "util.js", "scope.js", "spectrum.js", "decode.js",
-                       "timing.js"):
+                       "timing.js", "about.js"):
             js = http_get(self.web, "/" + module)
             self.assertTrue(js.startswith(b"HTTP/1.1 200 OK"), module)
             self.assertIn(b"Content-Type: text/javascript", js)

@@ -446,10 +446,22 @@
       </div>
       <p class="note">Every setting of the scope, in a file on this computer.</p>
     </details>
+
+    <div class="about-row"><button id="about-open">About</button></div>
   </aside>
 </main>
 
 <footer class="bar" id="status"></footer>
+
+<dialog id="about" class="about">
+  <h2>ScopeBridge</h2>
+  <p id="about-version"></p>
+  <canvas id="about-screen"></canvas>
+  <p>Made by Ulrik Hørlyk Hjort</p>
+  <p class="small">Remote control of oscilloscopes, in Ada. MIT licence.</p>
+  <p><a href="https://github.com/UlrikHjort/scopeBridge" target="_blank" rel="noopener">github.com/UlrikHjort/scopeBridge</a></p>
+  <form method="dialog"><button id="about-close" autofocus>Close</button></form>
+</dialog>
 
 <script type="module" src="app.js"></script>
 </body>

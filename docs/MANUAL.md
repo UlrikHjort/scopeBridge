@@ -723,6 +723,8 @@ under them. The panel beside it is in sections, which open and close:
   the capture and in a list under it; choosing one zooms to it.
 - **Timing**: as in section 13: the table and histogram under the
   display, and Longest and Shortest to zoom to them.
+- **About**, at the bottom of the panel: the version, and the same small
+  animated scope screen as the desktop GUI's.
 - **References**, **Pass/fail**, **Setups**: as in sections 10, 11 and
   14; files are saved to, and loaded from, the browser's computer.
 
