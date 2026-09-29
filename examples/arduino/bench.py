@@ -176,6 +176,63 @@ def check_delay(delay_us, tolerance=0.005):
     return check
 
 
+def check_pwm(duty):
+    """pwm.c: the hardware PWM on CH2 at 16 MHz / 64 / 256 with the duty
+    asked for and no spread; the software PWM on CH1 at the same rate (its
+    median period: the interrupt makes some periods longer)"""
+    period = 64 * 256 / F_CPU
+    def check(results):
+        hw, sw = results
+        hp, hb = hw["period"], hw["block"]
+        if hp["count"] < 5 or sw["period"]["count"] < 5:
+            return False, "%d periods on CH2, %d on CH1: is the program running?" % (
+                hp["count"], sw["period"]["count"])
+        if abs(hp["mean"] / period - 1) > 0.005:
+            return False, "hardware period %.2f us, not %.2f us" % (hp["mean"] * 1e6, period * 1e6)
+        got = hb["mean"] / hp["mean"]
+        if abs(got - duty / 100) > 0.005:
+            return False, "hardware duty %.1f %%, not %d %%" % (got * 100, duty)
+        if hb["std_dev"] > 2 * hw["resolution"]:
+            return False, "hardware pulses spread by %.0f ns" % (hb["std_dev"] * 1e9)
+        if abs(sw["period"]["median"] / hp["mean"] - 1) > 0.01:
+            return False, "software period %.1f us, not the hardware's %.1f us" % (
+                sw["period"]["median"] * 1e6, hp["mean"] * 1e6)
+        return True, "hardware %.1f %% with a spread of %.0f ns, software %.1f us spread" % (
+            got * 100, hb["std_dev"] * 1e9, sw["block"]["std_dev"] * 1e6)
+    return check
+
+
+def pwm_rate(results, x_inc):
+    """The hardware PWM's frequency"""
+    return "%.2f Hz" % (1 / results[0]["period"]["mean"])
+
+
+def check_latency(critical_us):
+    """irq_latency.c: from each hardware edge on CH2 to the interrupt's
+    marker on CH1, a few us; with a critical section, some events waiting
+    for it, without one, all within a microsecond"""
+    def check(results):
+        lat = results[0].get("latency")
+        if not lat or lat["count"] < 5:
+            return False, "%d latencies: is the program running?" % (lat["count"] if lat else 0)
+        if not 0.3e-6 <= lat["min"] <= 5e-6:
+            return False, "the shortest latency is %.2f us, not a few us" % (lat["min"] * 1e6)
+        if critical_us and lat["max"] < 20e-6:
+            return False, "no event waited for the critical section (longest %.2f us)" % (
+                lat["max"] * 1e6)
+        if not critical_us and lat["max"] - lat["min"] > 1e-6:
+            return False, "latencies spread from %.2f to %.2f us" % (lat["min"] * 1e6, lat["max"] * 1e6)
+        return True, "%d interrupts, latency %.2f .. %.1f us" % (
+            lat["count"], lat["min"] * 1e6, lat["max"] * 1e6)
+    return check
+
+
+def latency_median(results, x_inc):
+    """The usual latency, and the longest"""
+    lat = results[0]["latency"]
+    return "usually %.2f us, longest %.1f us" % (lat["median"] * 1e6, lat["max"] * 1e6)
+
+
 def delay_clock(delay_us):
     """The Uno's real clock, from the delay's length in cycles"""
     def measure(results, x_inc):
@@ -326,6 +383,26 @@ CASES = [
          check=check_timing({16, 32}), sim_check=check_timing({8, 12}),
          timing=block_times,
          screen=dict(scale=50e-6, offset=200e-6)),
+    dict(name="pwm-50", program="pwm", defs="", sim=None,
+         timebase=1e-3, depth=600000, trigger=("ch2", "rising"), channels=(1, 2),
+         analyse=[dict(ch=2), dict(ch=1)],
+         check=check_pwm(50), timing=pwm_rate,
+         screen=dict(scale=200e-6, offset=800e-6)),
+    dict(name="pwm-25", program="pwm", defs="-DDUTY=25", sim=None,
+         timebase=1e-3, depth=600000, trigger=("ch2", "rising"), channels=(1, 2),
+         analyse=[dict(ch=2), dict(ch=1)],
+         check=check_pwm(25), timing=pwm_rate,
+         screen=dict(scale=200e-6, offset=800e-6)),
+    dict(name="irq-latency", program="irq_latency", defs="", sim=None,
+         timebase=5e-3, depth=6000000, trigger=("ch2", "rising"), channels=(1, 2),
+         analyse=[dict(ch=2, to=1)],
+         check=check_latency(300), timing=latency_median,
+         screen=dict(scale=1e-6, offset=4e-6)),
+    dict(name="irq-no-critical", program="irq_latency", defs="-DCRITICAL_US=0", sim=None,
+         timebase=5e-3, depth=6000000, trigger=("ch2", "rising"), channels=(1, 2),
+         analyse=[dict(ch=2, to=1)],
+         check=check_latency(0), timing=latency_median,
+         screen=dict(scale=1e-6, offset=4e-6)),
     dict(name="delay-100us", program="delay", defs="", sim=None,
          timebase=200e-6, depth=600000, trigger=("ch1", "rising"), channels=(1, 2),
          analyse=[dict(ch=1), dict(ch=2)],
@@ -339,6 +416,8 @@ WIRING = {
     "spi": "CH1 to D13 (SCK), CH2 to D11 (MOSI)",
     "timing": "CH1 to D13 (marker A), CH2 to D11 (marker B)",
     "delay": "CH1 to D13 (marker A), CH2 to D11 (marker B)",
+    "pwm": "CH1 to D13 (the software PWM), CH2 to D11 (the hardware PWM)",
+    "irq_latency": "CH1 to D13 (the interrupt's marker), CH2 to D11 (the timer's edge)",
 }
 
 # -----------------------------------------------------------------------------

@@ -265,6 +265,30 @@ class ScriptingTest(unittest.TestCase):
                       levels(0.0, 0.5, overshoot=0.1))
         self.assertIn("high level is 3.10 V, not about 5 V", levels(0.0, 3.1))
         self.assertIn("no signal", levels(0.0, 0.05, overshoot=0))       # not wired
+        # pwm.c: the hardware PWM exact, the software's median period too
+        def pwm(period, width, spread, sw_median):
+            return [{"period": {"count": 11, "mean": period, "median": period},
+                     "block": {"count": 12, "mean": width, "std_dev": spread},
+                     "resolution": 40e-9},
+                    {"period": {"count": 11, "mean": sw_median * 1.03, "median": sw_median},
+                     "block": {"count": 12, "mean": width, "std_dev": 6e-6}, "resolution": 40e-9}]
+        check = bench.check_pwm(50)
+        self.assertTrue(check(pwm(1.0251e-3, 0.5126e-3, 10e-9, 1.0253e-3))[0])   # the Uno's clock
+        self.assertIn("duty", check(pwm(1.0251e-3, 0.40e-3, 10e-9, 1.0253e-3))[1])
+        self.assertIn("spread", check(pwm(1.0251e-3, 0.5126e-3, 200e-9, 1.0253e-3))[1])
+        self.assertIn("period", check(pwm(1.10e-3, 0.55e-3, 10e-9, 1.10e-3))[1])
+        self.assertIn("software", check(pwm(1.0251e-3, 0.5126e-3, 10e-9, 1.08e-3))[1])
+        self.assertTrue(bench.check_pwm(25)(pwm(1.0251e-3, 0.2563e-3, 10e-9, 1.0253e-3))[0])
+        self.assertEqual(bench.pwm_rate(pwm(1.0251e-3, 0.5126e-3, 0, 0), 0), "975.51 Hz")
+        # irq_latency.c: a few us, with or without waits for the critical section
+        lat = lambda lo, hi: [{"latency": {"count": 30, "min": lo, "max": hi, "median": lo}}]
+        self.assertTrue(bench.check_latency(300)(lat(1.2e-6, 180e-6))[0])
+        self.assertIn("no event waited", bench.check_latency(300)(lat(1.2e-6, 1.4e-6))[1])
+        self.assertTrue(bench.check_latency(0)(lat(1.2e-6, 1.4e-6))[0])
+        self.assertIn("spread", bench.check_latency(0)(lat(1.2e-6, 180e-6))[1])
+        self.assertIn("not a few us", bench.check_latency(0)(lat(20e-6, 20e-6))[1])
+        self.assertEqual(bench.latency_median(lat(1.2e-6, 180e-6), 0),
+                         "usually 1.20 us, longest 180.0 us")
         # delay.c: 100 us + 2 cycles, and markers of 2 cycles, at 8 ns samples
         delay = lambda mean, sd, marker: [
             {"block": stats(23, 0, 0, mean, sd), "resolution": 8e-9},

@@ -7,7 +7,9 @@ Each sends the same thing over and over, so you know what the decoder
 should find, and each has build options for changing one thing at a time
 and seeing what it does. `timing.c` shows how to time code with the
 scope, using `timing.h`, markers for any microcontroller, and `delay.c`
-checks that timing against a delay of known length.
+checks that timing against a delay of known length. `pwm.c` makes PWM in
+hardware and in software side by side, and `irq_latency.c` measures how
+long the Uno takes to answer an interrupt.
 
 The screenshots here are the scope's own screen, taken by the bench
 (below) on a DS1202Z-E with the scope's bus decoder on.
@@ -19,6 +21,8 @@ The screenshots here are the scope's own screen, taken by the bench
 | `spi.c`  | SPI mode 0, 1 MHz         | D13 (SCK)  | D11 (MOSI)  |
 | `timing.c` | code timing: a CRC-16   | D13 (marker A) | D11 (marker B) |
 | `delay.c` | a known delay: 100 µs    | D13 (marker A) | D11 (marker B) |
+| `pwm.c`   | PWM, 976.6 Hz            | D13 (in software) | D11 (in hardware) |
+| `irq_latency.c` | interrupt latency  | D13 (the interrupt) | D11 (the event) |
 
 Clip both probes' ground leads to the Uno's GND. The Uno's signals swing
 0 .. 5 V: 2 V/div with the trace at the bottom third of the screen shows
@@ -107,8 +111,9 @@ and the baud rates agree (115200 comes out 2 % fast by the divider, and
 between them and the wait for SCL to rise. The cases: UART at 115200
 8N1, with odd parity and with two stop bits, at 9600 with even parity, at
 1000000 (exact at 16 MHz), and the echo; I2C; SPI in all four modes and
-least significant bit first; the timing of timing.c's CRC; and delay.c's
-known delay. Each is a few lines in `bench.py`, easy to copy for a
+least significant bit first; the timing of timing.c's CRC; delay.c's
+known delay; PWM at 50 and 25 % duty; and the interrupt latency with and
+without a critical section. Each is a few lines in `bench.py`, easy to copy for a
 program of your own.
 
 Each run leaves a folder in `bench-results/` with `report.md` (a table of
@@ -440,6 +445,121 @@ cost 126 ns, the two cycles of an `sbi`.
 `DEFS="-DDELAY_US=1000"` times 1 ms instead (at 2 ms/div); the bench's
 `delay-100us` case checks the 100 µs to 0.5 % and the spread to two
 samples, and reports the Uno's clock.
+
+## PWM
+
+`pwm.c` makes the same PWM twice, 50 % duty unless `DUTY` says otherwise:
+
+- **in hardware** on D11 (CH2): Timer 2's fast PWM, 16 MHz / 64 / 256 =
+  976.5625 Hz, a period of 1024 µs. The timer switches the pin by itself,
+  so every pulse and every period is exactly as long as the last.
+- **in software** on D13 (CH1): marker A high for the high time, with
+  `_delay_us` for the high and the low time. A second timer interrupts it
+  every 4.5 ms, about every fourth or fifth period, with 20 µs of
+  "housekeeping", as a real program's would, and whichever high or low
+  time it lands in is 20 µs too long. 4.5 ms does not divide into the
+  period, so it lands everywhere in turn.
+
+![pwm.c on the scope at 200 µs/div: the software PWM on CH1, the hardware PWM on CH2](../../docs/images/uno-pwm.png)
+
+**On the scope**: CH1 on D13, CH2 on D11, timebase 1 ms/div, trigger CH2
+rising. The measurements give the frequency (976.6 Hz, less the Uno's
+clock error) and the duty of each.
+
+**In the GUI**: *Capture memory*, then the *Timing* panel. On the Uno,
+over 23 periods at 50 %:
+
+| | high time | period | spread |
+|---|---|---|---|
+| CH2, hardware | 512.5 µs every time | 1.025 ms: 975.64 Hz | 13 ns, a third of a sample |
+| CH1, software | 512.6 µs, and 534 µs when the interrupt hit | 1.025 .. 1.047 ms | 7.4 µs |
+
+The hardware PWM has no spread at all; 975.64 Hz is 976.56 Hz less the
+Uno's clock error, 0.094 %, as `delay.c` measured it. The software PWM's
+histogram has its outliers, the interrupt's, 22 µs long: its 20 µs and
+what it takes to enter and leave. *Longest* zooms to one. That is why PWM
+is made by a timer when it matters, a motor's or a servo's.
+
+The first version of this program interrupted every 724 µs: more often
+than once a period, so that every period was hit and none was as short as
+the hardware's. An outlier that happens every time is no outlier; every
+4.5 ms, most periods are left alone.
+
+**The FFT**: a PWM signal is a square wave, full of harmonics: 976.6 Hz,
+1953 Hz, 2930 Hz and so on. At 50 % duty the even ones vanish, the
+2nd, 4th ...; at 25 % (`DEFS="-DDUTY=25"`), every fourth. The spectrum of
+a capture of CH2 shows it, with the peak marker on each line in turn.
+
+**Try**:
+- `DEFS="-DNO_INTERRUPT"`: no housekeeping, and the software PWM's spread
+  shrinks to the cycles of its loop;
+- the pulse width trigger on CH1, *+ > width* 525 µs, and *Single*: the
+  scope waits for a software pulse the interrupt made 20 µs too long, and
+  ignores the 512 µs ones.
+
+The bench's `pwm-50` and `pwm-25` cases check the hardware PWM's period to
+0.5 %, its duty to half a percent and its spread to two samples, and the
+software PWM's period against it (the median: the interrupt makes some
+periods longer, and so the mean too).
+
+## Interrupt latency
+
+`irq_latency.c` measures how long the Uno takes to answer an interrupt.
+Timer 2 toggles D11 (CH2) in hardware every millisecond, at exact moments,
+and the same compare match raises an interrupt. Its routine sets D13
+(CH1) as the first thing it does, then works 5 µs and clears it. From an
+edge on CH2 to the start of the pulse on CH1 is the latency:
+
+- it saves the program counter and jumps to the interrupt's vector, 4
+  cycles, and from there to the routine, 3;
+- the routine saves the registers it uses, 5 pushes and 2 other
+  instructions, 10 cycles (`avr-objdump -d` shows them);
+- then the `sbi` that sets D13, 2 cycles.
+
+About 19 cycles in all, 1.2 µs. Before all that, the CPU finishes the
+instruction it is in, which takes 0 to 3 cycles more, depending on the
+instruction and how far into it the event came.
+
+On the Uno, over 59 interrupts: **1.24 to 1.26 µs**, 20 cycles, with a
+spread of 10 ns. The main loop spends its time in `_delay_us`'s loop of
+two-cycle instructions, so the event nearly always finds the same kind of
+instruction to finish.
+
+![irq_latency.c on the scope at 1 µs/div: the timer's edge on CH2, the interrupt's marker on CH1 1.24 µs later](../../docs/images/uno-irq-latency.png)
+
+The program's main loop also has a critical section: every 1.84 ms it
+turns the interrupts off for 300 µs, as code does around data it shares
+with an interrupt. An event that comes then waits, and its latency can be
+anything up to 300 µs: the outliers.
+
+The first version of this program ran its loop every 2.0 ms, and not one
+event in 59 ever waited: 2 ms is twice the timer's period, so the critical
+section always fell in the same gap between two events. A critical
+section can hide completely in a test that way, when its timing happens
+to line up with the events', and turn up only when something else changes
+the loop's length. 1.84 ms drifts across the events instead.
+
+**On the scope**: CH1 on D13, CH2 on D11, timebase 5 ms/div, trigger CH2
+rising, capture both.
+
+**In the GUI**: the *Timing* panel, marker CH2, *Latency to* the other
+channel, then *Latency* for the histogram: a tall bar at 1.2 µs, and the
+events that waited scattered up to 300 µs. On the Uno the longest was
+299.6 µs: an event that came just as the critical section began. The
+mean, 22 µs, is no use here; the median, 1.26 µs, is. *Longest* zooms to
+the event that waited longest.
+
+**Try**:
+- `DEFS="-DCRITICAL_US=0"`: no critical section, and every latency is the
+  same within a cycle or two;
+- `DEFS="-DCRITICAL_US=20"`: a short one, and the outliers stay under
+  20 µs: what a critical section costs is its length;
+- the scope's own view at 1 µs/div, triggered on CH2 rising: the edge, and
+  1.2 µs later the interrupt's pulse.
+
+The bench's `irq-latency` and `irq-no-critical` cases check the shortest
+latency (a few µs), and that events waited with a critical section and
+did not without.
 
 ## Show it on the scope too
 
