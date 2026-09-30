@@ -44,6 +44,8 @@ checks it on both lines: arriving on RX, and back in upper case on TX.
 **Wiring, once for all the cases.** A pin a program does not use is an
 input, so the pins of all three protocols can share the two probes:
 
+![The bench wiring: D13, D1 and A5 joined to probe CH1, D11, D0 and A4 to probe CH2, both ground clips to GND](../../docs/images/uno-wiring.svg)
+
 | Probe | Joined with jumper wires               |
 |-------|----------------------------------------|
 | CH1   | D1 (UART TX), A5 (I2C SCL), D13 (SPI SCK, marker A) |
