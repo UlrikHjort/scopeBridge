@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="580" viewBox="0 0 960 580">
+<rect width="960" height="580" fill="#fff"/>
+<text x="30" y="38" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" fill="#222" text-anchor="start" font-weight="bold">The bench wiring: one for all the example programs</text>
+<text x="30" y="60" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#555" text-anchor="start" font-weight="normal">A pin a program does not use is an input, so the pins on a row do not disturb each other.</text>
+<text x="30" y="98" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#222" text-anchor="start" font-weight="bold">uart.c</text>
+<text x="176" y="98" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#222" text-anchor="start" font-weight="normal">D1, D0</text>
+<text x="30" y="116" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#222" text-anchor="start" font-weight="bold">i2c.c</text>
+<text x="176" y="116" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#222" text-anchor="start" font-weight="normal">A5, A4</text>
+<text x="30" y="134" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#222" text-anchor="start" font-weight="bold">spi.c, timing.c, delay.c,</text>
+<text x="30" y="152" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#222" text-anchor="start" font-weight="bold">pwm.c, irq_latency.c</text>
+<text x="176" y="152" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#222" text-anchor="start" font-weight="normal">D13, D11</text>
+<rect x="30" y="250" width="120" height="90" rx="8" fill="#f4f4f4" stroke="#222" stroke-width="2"/>
+<text x="90" y="291" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" fill="#222" text-anchor="middle" font-weight="bold">PC</text>
+<text x="90" y="313" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#222" text-anchor="middle" font-weight="normal">ScopeBridge</text>
+<rect x="250" y="90" width="200" height="420" rx="8" fill="#e8f3f1" stroke="#00796b" stroke-width="2"/>
+<text x="350.0" y="122" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" fill="#00574b" text-anchor="middle" font-weight="bold">Arduino Uno</text>
+<text x="350.0" y="142" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" fill="#00574b" text-anchor="middle" font-weight="normal">ATmega328P, 16 MHz</text>
+<rect x="441" y="176" width="18" height="18" fill="#fff" stroke="#b58900" stroke-width="2"/>
+<text x="432" y="190" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#222" text-anchor="end" font-weight="bold">D13</text>
+<text x="388" y="190" font-family="DejaVu Sans, Arial, sans-serif" font-size="10.5" fill="#555" text-anchor="end" font-weight="normal">SPI SCK, marker A</text>
+<rect x="441" y="216" width="18" height="18" fill="#fff" stroke="#b58900" stroke-width="2"/>
+<text x="432" y="230" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#222" text-anchor="end" font-weight="bold">D1</text>
+<text x="388" y="230" font-family="DejaVu Sans, Arial, sans-serif" font-size="10.5" fill="#555" text-anchor="end" font-weight="normal">UART TX</text>
+<rect x="441" y="256" width="18" height="18" fill="#fff" stroke="#b58900" stroke-width="2"/>
+<text x="432" y="270" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#222" text-anchor="end" font-weight="bold">A5</text>
+<text x="388" y="270" font-family="DejaVu Sans, Arial, sans-serif" font-size="10.5" fill="#555" text-anchor="end" font-weight="normal">I2C SCL</text>
+<rect x="441" y="326" width="18" height="18" fill="#fff" stroke="#0086a3" stroke-width="2"/>
+<text x="432" y="340" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#222" text-anchor="end" font-weight="bold">D11</text>
+<text x="388" y="340" font-family="DejaVu Sans, Arial, sans-serif" font-size="10.5" fill="#555" text-anchor="end" font-weight="normal">SPI MOSI, marker B</text>
+<rect x="441" y="366" width="18" height="18" fill="#fff" stroke="#0086a3" stroke-width="2"/>
+<text x="432" y="380" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#222" text-anchor="end" font-weight="bold">D0</text>
+<text x="388" y="380" font-family="DejaVu Sans, Arial, sans-serif" font-size="10.5" fill="#555" text-anchor="end" font-weight="normal">UART RX</text>
+<rect x="441" y="406" width="18" height="18" fill="#fff" stroke="#0086a3" stroke-width="2"/>
+<text x="432" y="420" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#222" text-anchor="end" font-weight="bold">A4</text>
+<text x="388" y="420" font-family="DejaVu Sans, Arial, sans-serif" font-size="10.5" fill="#555" text-anchor="end" font-weight="normal">I2C SDA</text>
+<rect x="441" y="466" width="18" height="18" fill="#fff" stroke="#444" stroke-width="2"/>
+<text x="432" y="480" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#222" text-anchor="end" font-weight="bold">GND</text>
+<polyline points="459,185 540,185" fill="none" stroke="#b58900" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="540" cy="185" r="4.5" fill="#b58900"/>
+<polyline points="459,225 540,225" fill="none" stroke="#b58900" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="540" cy="225" r="4.5" fill="#b58900"/>
+<polyline points="459,265 540,265" fill="none" stroke="#b58900" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="540" cy="265" r="4.5" fill="#b58900"/>
+<polyline points="540,185 540,265" fill="none" stroke="#b58900" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="468" y="171" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" fill="#555" text-anchor="start" font-weight="normal">joined on a breadboard row</text>
+<polyline points="459,335 540,335" fill="none" stroke="#0086a3" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="540" cy="335" r="4.5" fill="#0086a3"/>
+<polyline points="459,375 540,375" fill="none" stroke="#0086a3" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="540" cy="375" r="4.5" fill="#0086a3"/>
+<polyline points="459,415 540,415" fill="none" stroke="#0086a3" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="540" cy="415" r="4.5" fill="#0086a3"/>
+<polyline points="540,335 540,415" fill="none" stroke="#0086a3" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="468" y="321" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" fill="#555" text-anchor="start" font-weight="normal">joined on a breadboard row</text>
+<rect x="770" y="170" width="165" height="300" rx="8" fill="#f4f4f4" stroke="#222" stroke-width="2"/>
+<text x="852.5" y="200" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" fill="#222" text-anchor="middle" font-weight="bold">Oscilloscope</text>
+<text x="852.5" y="218" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" fill="#222" text-anchor="middle" font-weight="normal">Rigol DS1202Z-E</text>
+<rect x="790" y="232" width="125" height="66" rx="4" fill="#000"/>
+<polyline points="798,278 816,278 816,250 844,250 844,278 872,278 872,250 900,250 900,278 907,278" fill="none" stroke="#ffe600" stroke-width="2"/>
+<circle cx="770" cy="355" r="13" fill="#fff" stroke="#b58900" stroke-width="4"/>
+<circle cx="770" cy="355" r="3.5" fill="#b58900"/>
+<text x="794" y="360" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#b58900" text-anchor="start" font-weight="bold">CH1</text>
+<circle cx="770" cy="415" r="13" fill="#fff" stroke="#0086a3" stroke-width="4"/>
+<circle cx="770" cy="415" r="3.5" fill="#0086a3"/>
+<text x="794" y="420" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#0086a3" text-anchor="start" font-weight="bold">CH2</text>
+<polyline points="540,225 590,225" fill="none" stroke="#b58900" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="590,225 606,217 646,217 646,233 606,233" fill="#b58900" fill-opacity="0.25" stroke="#b58900" stroke-width="2"/>
+<polyline points="646,225 730,225 730,355 757,355" fill="none" stroke="#b58900" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="590" y="209" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#b58900" text-anchor="start" font-weight="bold">probe CH1, x10</text>
+<polyline points="620,233 620,249" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
+<polyline points="609,249 631,249" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="613,254 627,254" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="617,259 623,259" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="636" y="259" font-family="DejaVu Sans, Arial, sans-serif" font-size="10" fill="#555" text-anchor="start" font-weight="normal">ground clip</text>
+<polyline points="540,375 590,375" fill="none" stroke="#0086a3" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="590,375 606,367 646,367 646,383 606,383" fill="#0086a3" fill-opacity="0.25" stroke="#0086a3" stroke-width="2"/>
+<polyline points="646,375 705,375 705,415 757,415" fill="none" stroke="#0086a3" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="590" y="359" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#0086a3" text-anchor="start" font-weight="bold">probe CH2, x10</text>
+<polyline points="620,383 620,399" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3"/>
+<polyline points="609,399 631,399" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="613,404 627,404" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="617,409 623,409" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="636" y="409" font-family="DejaVu Sans, Arial, sans-serif" font-size="10" fill="#555" text-anchor="start" font-weight="normal">ground clip</text>
+<polyline points="459,475 500,475" fill="none" stroke="#444" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="500,475 500,483" fill="none" stroke="#444" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="489,483 511,483" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="493,488 507,488" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="497,493 503,493" fill="none" stroke="#444" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="520" y="480" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" fill="#555" text-anchor="start" font-weight="normal">both probes' ground clips go here</text>
+<polyline points="150,280 250,280" fill="none" stroke="#888" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="200" y="272" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">USB</text>
+<text x="200" y="297" font-family="DejaVu Sans, Arial, sans-serif" font-size="10" fill="#777" text-anchor="middle" font-weight="normal">flashing, serial</text>
+<polyline points="90,340 90,545 852.5,545 852.5,470" fill="none" stroke="#888" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<text x="470" y="537" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" fill="#555" text-anchor="middle" font-weight="normal">USB or LAN</text>
+</svg>
