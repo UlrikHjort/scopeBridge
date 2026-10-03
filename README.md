@@ -3,8 +3,9 @@
 [![CI](https://github.com/UlrikHjort/scopeBridge/actions/workflows/ci.yml/badge.svg)](https://github.com/UlrikHjort/scopeBridge/actions/workflows/ci.yml)
 
 Remote control of oscilloscopes from Linux, in Ada: at present the Rigol
-DS1000Z-E, over USB or the network. **Developed and tested on a Rigol DS1202Z-E (firmware
-00.06.04) only**; see [Compatibility](#compatibility) for other models.
+DS1000Z-E series (DS1102Z-E and DS1202Z-E), over USB or the network.
+**Developed and tested on a Rigol DS1202Z-E (firmware 00.06.04) only**;
+see [Compatibility](#compatibility) for other models.
 
 ![The GtkAda GUI with a live 1 kHz square wave](docs/images/overview.png)
 
