@@ -497,9 +497,13 @@ Found while bringing the library up on real hardware, and handled by it:
 - Changing a channel's V/div scales its trigger level with it: the level
   keeps its place on the screen (1.5 V at 0.5 V/div becomes 3 V at
   1 V/div). Set the level after the scale.
-- Memory depths depend on the number of channels on (12k ... 24M points with
-  one, 6k ... 12M with two), and the scope converts the depth when that
-  number changes. It ignores a change of depth while stopped.
+- The memory depth is the number of points a capture holds. A point is one
+  value of the waveform, one byte: in the normal acquisition mode one
+  sample, in the others a value made from several (an average, a peak, a
+  high-resolution value). Memory depths depend on the number of channels
+  on (12k ... 24M points with one, 6k ... 12M with two), and the scope
+  converts the depth when that number changes. It ignores a change of
+  depth while stopped.
 
 ## The programming guide
 

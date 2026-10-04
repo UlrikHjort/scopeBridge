@@ -92,8 +92,10 @@ acquisition mode: *Normal*; *Average* over 2 ... 1024 frames, which lowers
 noise on a repeating signal; *Peak detect*, which keeps each interval's
 highest and lowest sample so that short glitches show even at slow
 timebases; *High res*, which averages neighbouring samples. *Memory* sets
-how many points each acquisition holds: *Auto* lets the scope choose, or
-12k ... 24M points with one channel on (6k ... 12M with two). The sample rate
+how many points each acquisition holds. A point is one value of the
+waveform: in *Normal* mode one sample, in the other modes a value made from
+several, as described above. *Auto* lets the scope choose, or 12k ... 24M
+points with one channel on (6k ... 12M with two). The sample rate
 shown follows from it: a deep memory keeps the rate high at slow
 timebases, which captures and bus decoding need; a shallow one makes
 captures quick. The scope changes the depth only while it runs: after a
