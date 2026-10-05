@@ -1,6 +1,5 @@
 # Changelog
 
-
 ## Unreleased
 
 - make checks what the build needs before building: without GtkAda it
