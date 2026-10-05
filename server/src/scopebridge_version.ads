@@ -31,6 +31,6 @@
 package Scopebridge_Version is
    pragma Pure;
 
-   Version : constant String := "1.2.0";
+   Version : constant String := "1.3.0-dev";
 
 end Scopebridge_Version;

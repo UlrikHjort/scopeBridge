@@ -62,6 +62,10 @@ examples and screenshots.
 - GtkAda, for the GUI: `sudo apt install libgtkada20-dev`
 - Python 3, for the protocol tests and scripts
 
+`make deps-check` tells which of these are missing, and on Debian and
+Ubuntu the exact `apt install` command for them; `make deps` runs that
+command, after asking.
+
 ## Building
 
 ```
@@ -73,6 +77,11 @@ make check-web        # the web page in headless Firefox (needs Firefox)
 ```
 
 None of the checks needs an instrument.
+
+`make` checks first that GNAT, gprbuild, GNATCOLL and GtkAda are there.
+Without GtkAda it builds everything but the GUI, and without GNATCOLL
+everything but the server and the terminal client; it says what it left
+out, and how to install what is missing.
 
 ### Installing
 

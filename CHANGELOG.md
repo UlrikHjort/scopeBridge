@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- make checks what the build needs before building: without GtkAda it
+  builds everything but the GUI, without GNATCOLL everything but the
+  server and the terminal client, and it says what it left out.
+  make deps-check tells what is missing and, on Debian and Ubuntu, the
+  apt command to install it; make deps runs that command, after asking.
+- The docs say what a point is.
+
 ## 1.2.0 - 2026-09-29
 
 - Settings in ~/.scopebridgerc: [server] (the scope's source, port,
