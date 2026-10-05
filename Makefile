@@ -2,7 +2,13 @@
 # ScopeBridge - Makefile
 # =============================================================================
 #
-#   make                 build everything into bin/
+#   make                 build everything into bin/; what cannot be built
+#                        for want of GNATCOLL or GtkAda is left out, and
+#                        said so
+#   make deps-check      what the build needs, what of it is missing here,
+#                        and how to install it
+#   make deps            the same, then installs what is missing with apt
+#                        (Debian, Ubuntu), after asking
 #   make check           mock-based library tests (no instrument needed)
 #   make check-server    FFT, decoding and timing tests, then protocol,
 #                        scripting, terminal and web tests on the simulated
@@ -33,8 +39,12 @@ GPRBUILD := gprbuild -q -p
 export SCOPEBRIDGE_RC :=
 BIN_DIR  := bin
 
-.PHONY: all lib examples server gui term check check-server check-web install uninstall \
-        install-udev uninstall-udev package clean
+.PHONY: all lib examples server gui term deps-check deps check check-server check-web \
+        install uninstall install-udev uninstall-udev package clean
+
+#  Each part first checks that what it needs is here, for a clear message
+#  instead of gprbuild's; make (all) checks everything once, up front
+NEED := $(if $(DEPS_CHECKED),:,sh contrib/check-deps.sh --need)
 
 PREFIX           ?= /usr/local
 BINDIR           := $(PREFIX)/bin
@@ -59,28 +69,44 @@ PROGRAMS := scopebridge-server scopebridge-gui scopebridge-term
 PYTHON   := scopebridge.py scopebridge_client.py scopebridge_run.py scopebridge_tk.py
 MANPAGES := scopebridge-server.1 scopebridge-gui.1 scopebridge-term.1 scopebridge-run.1
 
-all: lib examples server gui term
+#  lib examples server term gui, as far as what they need is here
+all:
+	@targets=$$(sh contrib/check-deps.sh --targets) && \
+	$(MAKE) --no-print-directory DEPS_CHECKED=1 $$targets && \
+	sh contrib/check-deps.sh --skipped "$$targets"
+
+deps-check:
+	@sh contrib/check-deps.sh
+
+deps:
+	@sh contrib/check-deps.sh --install
 
 #  Every library unit, including those no program happens to use, so none
 #  can silently rot.
 lib:
+	@$(NEED) gnat
 	$(GPRBUILD) -c -U -P rigol_lib.gpr
 
 #  basic_demo, lan_demo, capture_demo and the test suite test_scpi
 examples:
+	@$(NEED) gnat
 	$(GPRBUILD) -P rigol.gpr
 
 #  scopebridge-server (docs/PROTOCOL.md), and its FFT and decoding tests.  Needs
 #  GNATCOLL.
 server:
+	@$(NEED) gnatcoll
 	$(GPRBUILD) -P server/scopebridge_server.gpr
 
-#  The GtkAda front end for the server.  Needs GtkAda (libgtkada-dev).
+#  The GtkAda front end for the server.  Needs GtkAda (libgtkada-dev) and
+#  GNATCOLL.
 gui:
+	@$(NEED) gnatcoll gtkada
 	$(GPRBUILD) -P gui/scopebridge_gui.gpr
 
 #  scopebridge-term, the terminal client.  Needs GNATCOLL.
 term:
+	@$(NEED) gnatcoll
 	$(GPRBUILD) -P term/scopebridge_term.gpr
 
 check: examples
@@ -106,7 +132,7 @@ SUBST := sed -e 's|@BINDIR@|$(BINDIR)|g' -e 's|@DOCDIR@|$(DOCDIR)|g' \
 
 install:
 	@[ -x $(BIN_DIR)/scopebridge-server ] || \
-	  { echo "build first: make, or on a computer without GtkAda (a Raspberry Pi) make server term"; exit 1; }
+	  { echo "build first: make (the server needs GNATCOLL: make deps-check)"; exit 1; }
 	install -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(PYDIR) $(DESTDIR)$(MANDIR) \
 	  $(DESTDIR)$(DATADIR)/web \
 	  $(DESTDIR)$(DOCDIR)/images $(DESTDIR)$(SYSTEMD_USER_DIR)
@@ -169,7 +195,7 @@ uninstall:
 #  uninstall.sh and the lists of what they install; owned by root in the
 #  tarball, and not writable by group or others
 package:
-	@[ -x $(BIN_DIR)/scopebridge-server ] || { echo "build first: make, or make server term"; exit 1; }
+	@[ -x $(BIN_DIR)/scopebridge-server ] || { echo "build first: make (the server needs GNATCOLL: make deps-check)"; exit 1; }
 	rm -rf $(DIST)/$(PACKAGE) $(DIST)/$(PACKAGE).tar.gz
 	umask 022 && $(MAKE) --no-print-directory install DESTDIR=$(abspath $(DIST))/$(PACKAGE)/root > /dev/null
 	umask 022 && $(MAKE) --no-print-directory install-udev DESTDIR=$(abspath $(DIST))/$(PACKAGE)/root > /dev/null
